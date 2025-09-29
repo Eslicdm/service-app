@@ -1,0 +1,133 @@
+version: '3.8'
+
+# service-app-angular port = 4200
+services:
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.3.1
+    container_name: keycloak_auth
+    command: start-dev --import-realm
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: ${KC_BOOTSTRAP_ADMIN_USERNAME}
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KC_BOOTSTRAP_ADMIN_PASSWORD}
+      REALM_ADMIN_PASSWORD: ${REALM_ADMIN_PASSWORD}
+      REALM_MANAGER_PASSWORD: ${REALM_MANAGER_PASSWORD}
+      REALM_MEMBER_PASSWORD: ${REALM_MEMBER_PASSWORD}
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://keycloak_db:5432/${KC_DB_NAME}
+      KC_DB_USERNAME: ${KC_DB_USERNAME}
+      KC_DB_PASSWORD: ${KC_DB_PASSWORD}
+      KC_HOSTNAME: localhost
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./keycloak:/opt/keycloak/data/import
+    depends_on:
+      keycloak_db:
+        condition: service_healthy
+    networks:
+      - service-app-network
+    restart: unless-stopped
+
+  keycloak_db:
+    image: postgres:17
+    container_name: keycloak_db
+    environment:
+      POSTGRES_USER: ${KC_DB_USERNAME}
+      POSTGRES_PASSWORD: ${KC_DB_PASSWORD}
+      POSTGRES_DB: ${KC_DB_NAME}
+    ports:
+      - "5434:5432"
+    volumes:
+      - keycloak-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${KC_DB_USERNAME} -d ${KC_DB_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - service-app-network
+    restart: unless-stopped
+
+# member-service port = 8081
+  member_service_db:
+    image: postgres:17
+    container_name: member_service_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${MEMBER_DB_USERNAME}
+      POSTGRES_PASSWORD: ${MEMBER_DB_PASSWORD}
+      POSTGRES_DB: ${MEMBER_DB_NAME}
+    ports:
+      - "5435:5432"
+    volumes:
+      - member-service-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${MEMBER_DB_USERNAME} -d ${MEMBER_DB_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - service-app-network
+
+# pricing-service port = 8082
+  pricing_service_db:
+    image: mongo:7.0
+    container_name: pricing_service_db
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${PRICING_DB_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${PRICING_DB_PASSWORD}
+      MONGO_INITDB_DATABASE: ${PRICING_DB_NAME}
+    ports:
+      - "27017:27017"
+    volumes:
+      - pricing-service-db-data:/data/db
+    networks:
+      - service-app-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: redis_cache
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - service-app-network
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq_broker
+    restart: unless-stopped
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USERNAME}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+    ports:
+      - "5672:5672"    # AMQP port
+      - "15672:15672"  # Management UI
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmqctl", "status"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - service-app-network
+
+volumes:
+  keycloak-db-data:
+  member-service-db-data:
+  pricing-service-db-data:
+  redis-data:
+  rabbitmq-data:
+
+networks:
+  service-app-network:
+    driver: bridge
