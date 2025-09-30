@@ -1,13 +1,9 @@
-A generic application for some Enterprise manager Services
+This application provides a centralized platform for enterprise managers to administer service subscriptions for their members. It allows for dynamic pricing management, member administration, and provides a public-facing portal for members to view and select service tiers.
 
 
-
-
-
-###### Tools:
+## Tools:
 
 **Devops:**
-
 * Github Actions
 * SonarQube
 * Docker
@@ -18,18 +14,14 @@ A generic application for some Enterprise manager Services
 * Terraform + AWS (after finishing)
 
 
-
 **CMP Mobile:**
-
 * Ktor\_Client
 * SQLDelight
 * Koin
 * Jetpack Compose
 
 
-
 **Web Angular:**
-
 * Angular Material
 * HttpClient
 * Jasmine
@@ -38,101 +30,52 @@ A generic application for some Enterprise manager Services
 * Cypress
 
 
-
 **Backend:**
-
 * Java Spring Boot
-* Spring Data JPA e Hibernate
+* Spring Data JPA Hibernate
 * Spring Security
 * Keycloak, OAuth2, JWT
-* Springdoc OpenAPI
-* Swagger
+* Springdoc OpenAPI (for Swagger UI)
 * Spring AMQP - RabbitMQ
+* Kafka
 * Spring Validation
-* Spring Test
-* TestContainers
-* JUnit
-* Mockito
-* Spring Cloud Gateway
-* Spring Cloud Config
+* Testing: 
+    * Spring Test
+    * JUnit
+    * Mockito 
+    * Testcontainers
+* Spring Cloud:
+    * Netflix Eureka Server (Registry)
+    * Netflix Eureka Client
+    * Gateway
+    * Config
 * Redis
 * Flyway
 
 
+## Domain: Diagram 
 
-
-
-###### Domain:
-
-* Follow TDD and make test for each commit/task (when aplicable)
+* Follow TDD and make a test for each commit/task (when applicable)
 * **member-service**: some Manager can CRUD Members
 * **pricing-service**: have 3 choices (free, half price, full price), and can edit their price and text description. And can see how many Members selected some choice
-* **notification-service (later)**: send email to Member saying that the Service was confirmed
-* **Landing-Page**: show the 3 choices and description. Some AI (user send a text and AI help make decision). Some Video
-* **service-app-gateway**: organize routes, auth,
+* **service-app-registry** register all services in the network
+* **service-app-infra** handles all the infra (docker-compose, databases, keycloak, rabbitmq, kafka, redis, etc)
+* **service-app-gateway**: organize routes, auth, ratelimiter, load balancer
+* **Landing-Feature**: show the 3 choices and description. Some AI (user send a text and AI help make decision). Some Video 
+* **Member-Feature**: show the Member list and CRUD
+* **Pricing-Feature**: show the prices and CRUD
+* **Auth-Feature**: make the auth flow
+
+
+## Later:
+* Kafka to get Member service requests from landing page, and show in the member-service so the Manager can add
+* **notification-service**: send email to Member saying that the Service was confirmed
 * Add translation for PT-br
+* create readme for each service, and some diagram
 
 
-
-Kafka to get Member service requests from landing page, and show in the member-service so the Manager can add
-
-
-
-
-
-###### To-do:
-
+## To-do:
 **Current:**
-
-* configure api gateway
-* make the IT test in pricing-service
-* analize pricing-service test
+* send a price message to member-service using rabbitmq and cache it with redis
+* get the prices in the member-feature and show
 * Feature Landing, create 3 cards with the price and description
-* after pricing with rabbitmq and landing with kafka make deploy in render (or another)
-* create readme for pricing-service, member-service, angular
-
-
-
-
-
-**Devops:**
-
-
-
-
-
-**CMP Mobile:**
-
-Make CMP after the application is working
-
-
-
-
-
-**Web Angular:**
-
-* Feature Landing: {
-* create a button to login
-* 3 cards to show the price choices,
-* a text to AI decision,
-* a video
-* }
-* Feature Auth: {
-* make login with keycloak and navigate to Member (check)
-* 
-* }
-* Feature Member: {
-* create a member-service connection to backend to get the member list of some manager
-* }
-* Feature Manager:
-
-
-
-
-
-**Backend Java:**
-
-* pricing-service:
-* member-service:
-* notification-service:
-* manager-service:
