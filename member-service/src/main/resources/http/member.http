@@ -1,0 +1,20 @@
+# @name=getAllMembersByManagerId
+GET {{baseUrl}}/members/1
+Accept: application/json
+
+###
+# @name=createMember
+POST {{baseUrl}}/members/1
+Content-Type: application/json
+
+{
+  "name": "New Member1",
+  "email": "new.member1@serviceapp.com",
+  "birthDate": "1990-01-15",
+  "serviceType": "free"
+}
+
+###
+# @name=getAllPrices
+GET {{baseUrl}}/prices
+Accept: application/json

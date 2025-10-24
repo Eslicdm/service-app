@@ -7,7 +7,6 @@ import com.eslirodrigues.pricing_service.repository.PriceRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.crossstore.ChangeSetPersister;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -33,19 +32,23 @@ public class PriceService {
     public Price updatePrice(
             PriceType priceType,
             PriceUpdateDTO priceUpdateDTO
-    ) throws ChangeSetPersister.NotFoundException {
-        Price price = priceRepository.findByPriceType(priceType)
-                .orElseThrow(ChangeSetPersister.NotFoundException::new);
+    ) {
+        Price price = priceRepository.findByPriceType(priceType).orElseGet(() -> {
+            Price newPrice = new Price();
+            newPrice.setPriceType(priceType);
+            newPrice.setCreatedAt(LocalDateTime.now());
+            return newPrice;
+        });
 
         price.setValue(priceUpdateDTO.value());
         price.setDescription(priceUpdateDTO.description());
         price.setUpdatedAt(LocalDateTime.now());
 
-        Price updatedPrice = priceRepository.save(price);
+        Price savedPrice = priceRepository.save(price);
 
-        sendPriceUpdateNotification(updatedPrice);
+        sendPriceUpdateNotification(savedPrice);
 
-        return updatedPrice;
+        return savedPrice;
     }
 
     private void sendPriceUpdateNotification(Price price) {

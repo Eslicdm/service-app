@@ -3,12 +3,10 @@ package com.eslirodrigues.pricing_service.controller;
 import com.eslirodrigues.pricing_service.dto.PriceUpdateDTO;
 import com.eslirodrigues.pricing_service.entity.Price;
 import com.eslirodrigues.pricing_service.entity.PriceType;
-import com.eslirodrigues.pricing_service.service.PriceService;
 import jakarta.validation.Valid;
+import com.eslirodrigues.pricing_service.service.PriceService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.crossstore.ChangeSetPersister;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -26,11 +24,10 @@ public class PriceController {
     }
 
     @PutMapping("/{priceType}")
-    @PreAuthorize("hasRole('PRICE-ADMIN')")
     public ResponseEntity<Price> updatePrice(
             @PathVariable PriceType priceType,
-            @Valid @RequestBody PriceUpdateDTO priceUpdateDTO
-    ) throws ChangeSetPersister.NotFoundException {
+            @RequestBody @Valid PriceUpdateDTO priceUpdateDTO
+    ) {
         return ResponseEntity.ok(priceService.updatePrice(priceType, priceUpdateDTO));
     }
 }

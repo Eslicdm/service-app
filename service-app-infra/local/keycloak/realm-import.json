@@ -75,6 +75,19 @@
   },
   "clients": [
     {
+      "clientId": "service-app-compose",
+      "name": "Service App Web Compose",
+      "enabled": true,
+      "publicClient": true,
+      "directAccessGrantsEnabled": true,
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "redirectUris": [
+        "http://localhost:8080/*"
+      ],
+      "webOrigins": []
+    },
+    {
       "clientId": "service-app-angular",
       "name": "Service App Web Angular",
       "enabled": true,

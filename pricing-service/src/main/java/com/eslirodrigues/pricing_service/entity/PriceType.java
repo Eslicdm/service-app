@@ -1,7 +1,42 @@
 package com.eslirodrigues.pricing_service.entity;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonValue;
+
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Stream;
+
+import static java.util.function.Function.identity;
+import static java.util.stream.Collectors.toMap;
+
 public enum PriceType {
-    FREE,
-    HALF_PRICE,
-    FULL_PRICE
+    FREE("free"),
+    HALF_PRICE("half-price"),
+    FULL_PRICE("full-price");
+
+    private final String value;
+
+    private static final Map<String, PriceType> valueMap = Stream.of(values())
+            .collect(toMap(priceType -> priceType.value, identity()));
+    private static final Map<String, PriceType> nameMap = Stream.of(values())
+            .collect(toMap(Enum::name, identity()));
+
+    PriceType(String value) {
+        this.value = value;
+    }
+
+    @JsonValue
+    public String getValue() {
+        return value;
+    }
+
+    @JsonCreator
+    public static PriceType fromValue(String value) {
+        return Optional.ofNullable(valueMap.get(value.toLowerCase()))
+                .or(() -> Optional.ofNullable(nameMap.get(value.toUpperCase())))
+                .orElseThrow(() ->
+                    new IllegalArgumentException("Unknown enum value: '" + value + "'")
+                );
+    }
 }

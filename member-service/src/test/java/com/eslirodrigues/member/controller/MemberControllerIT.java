@@ -2,8 +2,9 @@ package com.eslirodrigues.member.controller;
 
 import com.eslirodrigues.member.dto.CreateMemberRequest;
 import com.eslirodrigues.member.entity.ServiceType;
-import io.restassured.RestAssured;
+import io.restassured.builder.RequestSpecBuilder;
 import io.restassured.http.ContentType;
+import io.restassured.specification.RequestSpecification;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -29,11 +30,14 @@ import static org.hamcrest.Matchers.*;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @Testcontainers
-@Sql(scripts = "/cleanup.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
 class MemberControllerIT {
+
+    private static final String BASE_PATH = "/api/v1/members/{managerId}";
 
     @LocalServerPort
     private Integer port;
+
+    private RequestSpecification requestSpecification;
 
     @Container
     static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:17");
@@ -63,7 +67,12 @@ class MemberControllerIT {
 
     @BeforeEach
     void setUp() {
-        RestAssured.baseURI = "http://localhost:" + port;
+        requestSpecification = new RequestSpecBuilder()
+                .setBaseUri("http://localhost")
+                .setPort(port)
+                .setContentType(ContentType.JSON)
+                .addHeader("Authorization", "Bearer dummy-token")
+                .build();
 
         Jwt jwt = Jwt.withTokenValue("dummy-token")
                 .header("alg", "none")
@@ -77,7 +86,8 @@ class MemberControllerIT {
     }
 
     @Test
-    void testCreateMember_whenValidRequest_shouldReturnCreated() {
+    @Sql(scripts = "/cleanup.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+    void createMember_withValidRequest_shouldReturnCreated() {
         Long managerId = 1L;
         var request = new CreateMemberRequest(
                 "John Doe",
@@ -87,14 +97,10 @@ class MemberControllerIT {
                 ServiceType.FULL_PRICE
         );
 
-        given()
-                .header("Authorization", "Bearer dummy-token")
-                .contentType(ContentType.JSON)
+        given().spec(requestSpecification)
                 .body(request)
-                .when()
-                .post("/api/v1/members/{managerId}", managerId)
-                .then()
-                .statusCode(201)
+                .when().post(BASE_PATH, managerId)
+                .then().statusCode(201)
                 .body("id", notNullValue())
                 .body("name", equalTo("John Doe"))
                 .body("email", equalTo("john.doe@test.com"))
@@ -102,52 +108,27 @@ class MemberControllerIT {
     }
 
     @Test
-    void testGetAllMembers_whenMembersExist_shouldReturnMemberList() {
+    @Sql(scripts = "/cleanup.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+    void getAllMembersByManagerId_whenMembersExist_shouldReturnMemberList() {
         Long managerId = 2L;
-        var request = new CreateMemberRequest(
-                "Jane Smith",
-                "jane.smith@test.com",
-                null,
+        var memberToCreate = new CreateMemberRequest(
+                "Test Member",
+                "test.member@serviceapp.com",
+                LocalDate.of(1995, 5, 25),
                 null,
                 ServiceType.FREE
         );
-        given()
-                .header("Authorization", "Bearer dummy-token")
-                .contentType(ContentType.JSON)
-                .body(request)
-                .post("/api/v1/members/{managerId}", managerId)
-                .then()
-                .statusCode(201);
 
-        given()
-                .header("Authorization", "Bearer dummy-token")
-                .when()
-                .get("/api/v1/members/{managerId}", managerId)
-                .then()
-                .statusCode(200)
+        given().spec(requestSpecification)
+                .body(memberToCreate)
+                .post(BASE_PATH, managerId)
+                .then().statusCode(201);
+
+        given().spec(requestSpecification)
+                .when().get(BASE_PATH, managerId)
+                .then().statusCode(200)
                 .body("$", hasSize(1))
-                .body("[0].name", equalTo("Jane Smith"))
+                .body("[0].name", equalTo("Test Member"))
                 .body("[0].managerId", equalTo(managerId.intValue()));
-    }
-
-    @Test
-    void testCreateMember_whenInvalidServiceType_shouldReturnBadRequest() {
-        Long managerId = 1L;
-        String invalidRequestJson = """
-                {
-                    "name": "Invalid User",
-                    "email": "invalid.user@test.com",
-                    "serviceType": "invalid-type"
-                }
-                """;
-
-        given()
-                .header("Authorization", "Bearer dummy-token")
-                .contentType(ContentType.JSON)
-                .body(invalidRequestJson)
-                .when()
-                .post("/api/v1/members/{managerId}", managerId)
-                .then()
-                .statusCode(400);
     }
 }

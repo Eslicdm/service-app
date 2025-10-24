@@ -20,7 +20,7 @@ public class SecurityConfig {
                         .requestMatchers("/error").permitAll()
                         .requestMatchers("/actuator/health", "/actuator/info").permitAll()
                         .requestMatchers("/actuator/**").authenticated()
-                        .requestMatchers("/api/**").authenticated()
+                        .requestMatchers("/api/**").permitAll() // CHANGE
                         .anyRequest().denyAll()
                 )
                 .oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt -> {}))

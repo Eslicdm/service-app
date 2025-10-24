@@ -1,0 +1,53 @@
+server:
+  port: 8082
+
+spring:
+  application:
+    name: pricing-service
+
+  data:
+    mongodb:
+      host: localhost
+      port: 27017
+      username: ${PRICING_DB_USERNAME}
+      password: ${PRICING_DB_PASSWORD}
+      database: ${PRICING_DB_NAME}
+      authentication-database: admin
+
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: ${RABBITMQ_USERNAME}
+    password: ${RABBITMQ_PW}
+
+app:
+  rabbitmq:
+    exchange:
+      pricing: pricing.exchange
+    routingkey:
+      price-updated: price.updated.key
+
+eureka:
+  client:
+    enabled: false
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+    register-with-eureka: true
+    fetch-registry: true
+  instance:
+    prefer-ip-address: true
+    lease-renewal-interval-in-seconds: 30
+    lease-expiration-duration-in-seconds: 90
+    metadata-map:
+      version: 1.0.0
+      description: Pricing management service
+      health-check-url: http://localhost:8082/actuator/health
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: when-authorized

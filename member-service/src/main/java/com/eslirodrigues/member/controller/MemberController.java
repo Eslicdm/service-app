@@ -24,11 +24,6 @@ public class MemberController {
             @PathVariable Long managerId
     ) {
         List<Member> members = memberService.getAllMembersByManagerId(managerId);
-        Member dummyMember = new Member();
-        dummyMember.setName("Dummy Member");
-        if (members.isEmpty()) {
-            members.add(dummyMember);
-        }
         return ResponseEntity.ok(members);
     }
 
