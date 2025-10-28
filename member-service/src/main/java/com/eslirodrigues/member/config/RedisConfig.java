@@ -13,7 +13,7 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 @Configuration
 public class RedisConfig {
 
-    @Bean
+    @Bean("priceUpdateRedisTemplate")
     public RedisTemplate<String, PriceUpdateEventDTO> redisTemplate(
             RedisConnectionFactory connectionFactory
     ) {
@@ -21,11 +21,25 @@ public class RedisConfig {
 
         var serializer =
                 new Jackson2JsonRedisSerializer<>(objectMapper, PriceUpdateEventDTO.class);
-
         RedisTemplate<String, PriceUpdateEventDTO> template = new RedisTemplate<>();
         template.setConnectionFactory(connectionFactory);
         template.setKeySerializer(new StringRedisSerializer());
         template.setValueSerializer(serializer);
+        return template;
+    }
+
+    @Bean("genericRedisTemplate")
+    public RedisTemplate<String, Object> genericRedisTemplate(
+            RedisConnectionFactory connectionFactory
+    ) {
+        ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
+        var serializer = new Jackson2JsonRedisSerializer<>(objectMapper, Object.class);
+        RedisTemplate<String, Object> template = new RedisTemplate<>();
+        template.setConnectionFactory(connectionFactory);
+        template.setKeySerializer(new StringRedisSerializer());
+        template.setValueSerializer(serializer);
+        template.setHashKeySerializer(new StringRedisSerializer());
+        template.setHashValueSerializer(serializer);
         return template;
     }
 }

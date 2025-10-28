@@ -29,6 +29,7 @@
         <module>service-app-registry</module>
         <module>member-service</module>
         <module>pricing-service</module>
+        <module>member-request-service</module>
     </modules>
 
     <dependencyManagement>

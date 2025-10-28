@@ -39,6 +39,18 @@ spring:
     username: ${RABBITMQ_USERNAME}
     password: ${RABBITMQ_PW}
 
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: member-service-group
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.use.type.headers: false
+        spring.json.value.default.type: com.eslirodrigues.member.dto.MemberRequestEvent
+        spring.json.trusted.packages: "com.eslirodrigues.member.dto"
+
 app:
   rabbitmq:
     exchange:
@@ -47,6 +59,10 @@ app:
       price-updated: queue.price-updated.member-service
     routingkey:
       price-updated: price.updated.key
+
+  kafka:
+    topic:
+      member-requests: member.requests.topic
 
   services:
     pricing:

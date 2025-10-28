@@ -18,3 +18,8 @@ Content-Type: application/json
 # @name=getAllPrices
 GET {{baseUrl}}/prices
 Accept: application/json
+
+###
+# @name=getNewMemberRequests
+GET {{baseUrl}}/member-requests
+Accept: application/json

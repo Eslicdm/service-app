@@ -3,12 +3,26 @@ package com.eslirodrigues.member.entity;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Stream;
+
+import static java.util.stream.Collectors.toMap;
+
 public enum ServiceType {
     FREE("free"),
     HALF_PRICE("half-price"),
     FULL_PRICE("full-price");
 
     private final String value;
+
+    private static final Map<String, ServiceType> valueMap = Stream.of(values())
+            .collect(toMap(
+                    serviceType -> serviceType.value,
+                    java.util.function.Function.identity())
+            );
+    private static final Map<String, ServiceType> nameMap = Stream.of(values())
+            .collect(toMap(Enum::name, java.util.function.Function.identity()));
 
     ServiceType(String value) {
         this.value = value;
@@ -21,9 +35,8 @@ public enum ServiceType {
 
     @JsonCreator
     public static ServiceType fromValue(String value) {
-        for (ServiceType type : ServiceType.values()) {
-            if (type.value.equalsIgnoreCase(value)) return type;
-        }
-        throw new IllegalArgumentException("Unknown enum value: '" + value + "'");
+        return Optional.ofNullable(valueMap.get(value.toLowerCase()))
+                .or(() -> Optional.ofNullable(nameMap.get(value.toUpperCase())))
+                .orElseThrow(() -> new IllegalArgumentException("Unknown enum value: '" + value + "'"));
     }
 }
