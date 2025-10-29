@@ -94,11 +94,10 @@ This application provides a centralized platform for enterprise managers to admi
 
 **Current:**
 
-* see the kotlin in the servicetype enum
 * integrate all servies to eureka and test the gateway
 * configure OTel and Datadog
 * remove the css and use Tailwind4
 * change reative gateway to use virtual threads
 * configure kafka to receive the request from the landing page
-* change the keycloak login to auth0
+* change the keycloak login to auth0 (change the securityConfig)
 * use springdoc

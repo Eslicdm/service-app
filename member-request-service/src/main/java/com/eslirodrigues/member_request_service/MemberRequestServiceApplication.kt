@@ -1,11 +1,11 @@
-package com.eslirodrigues.member_request_service;
+package com.eslirodrigues.member_request_service
 
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication
+import org.springframework.boot.runApplication
 
 @SpringBootApplication
-public class MemberRequestServiceApplication {
-    public static void main(String[] args) {
-        SpringApplication.run(MemberRequestServiceApplication.class, args);
-    }
+class MemberRequestServiceApplication
+
+fun main(args: Array<String>) {
+    runApplication<MemberRequestServiceApplication>(*args)
 }

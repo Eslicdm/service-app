@@ -1,24 +1,22 @@
-package com.eslirodrigues.member_request_service.service;
+package com.eslirodrigues.member_request_service.service
 
-import com.eslirodrigues.member_request_service.dto.MemberRequestDTO;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.stereotype.Service;
+import com.eslirodrigues.member_request_service.dto.MemberRequestDTO
+import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Value
+import org.springframework.kafka.core.KafkaTemplate
+import org.springframework.stereotype.Service
 
-@Slf4j
 @Service
-@RequiredArgsConstructor
-public class MemberRequestProducer {
+class MemberRequestProducer(
+    private val kafkaTemplate: KafkaTemplate<String, MemberRequestDTO>,
+    @param:Value($$"${app.kafka.topic.member-requests}") private val topic: String
+) {
+    companion object {
+        private val log = LoggerFactory.getLogger(MemberRequestProducer::class.java)
+    }
 
-    @Value("${app.kafka.topic.member-requests}")
-    private String topic;
-
-    private final KafkaTemplate<String, MemberRequestDTO> kafkaTemplate;
-
-    public void sendMemberRequest(MemberRequestDTO memberRequest) {
-        kafkaTemplate.send(topic, memberRequest.email(), memberRequest);
-        log.info("Sent member request for {} to topic {}", memberRequest.email(), topic);
+    fun sendMemberRequest(memberRequest: MemberRequestDTO) {
+        kafkaTemplate.send(topic, memberRequest.email, memberRequest)
+        log.info("Sent member request for ${memberRequest.email} to topic $topic")
     }
 }

@@ -15,6 +15,12 @@ spring:
       port: 6379
       password: ${REDIS_PASSWORD}
 
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8080/realms/service-app-realm
+
   kafka:
     bootstrap-servers: localhost:9092
     producer:
