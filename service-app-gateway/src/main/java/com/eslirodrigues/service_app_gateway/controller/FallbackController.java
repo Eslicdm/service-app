@@ -27,6 +27,14 @@ public class FallbackController {
         return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(map);
     }
 
+    @GetMapping("/member-request-service")
+    @PostMapping("/member-request-service")
+    public ResponseEntity<Map<String, Object>> memberRequestServiceFallback() {
+        return createFallbackResponse(
+                "member-request-service", "Member request service is temporarily unavailable"
+        );
+    }
+
     @GetMapping("/member-service")
     @PostMapping("/member-service")
     public ResponseEntity<Map<String, Object>> memberServiceFallback() {

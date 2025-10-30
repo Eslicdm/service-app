@@ -41,7 +41,7 @@ import static org.hamcrest.Matchers.is;
 @Testcontainers
 class PriceControllerIT {
 
-    private static final String PRICES_PATH = "/api/v1/prices";
+    private static final String PRICES_PATH = "/api/v1/members/prices";
 
     @LocalServerPort
     private Integer port;

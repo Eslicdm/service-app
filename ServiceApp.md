@@ -94,7 +94,9 @@ This application provides a centralized platform for enterprise managers to admi
 
 **Current:**
 
-* integrate all servies to eureka and test the gateway
+* hide api keys angular
+* create one login page
+* /member configure the cors
 * configure OTel and Datadog
 * remove the css and use Tailwind4
 * change reative gateway to use virtual threads
