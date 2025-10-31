@@ -94,12 +94,10 @@ This application provides a centralized platform for enterprise managers to admi
 
 **Current:**
 
-* hide api keys angular
+* create crud for member and pricing service
+* create crud for member and pricing feature (change endpoints)
 * create one login page
-* /member configure the cors
 * configure OTel and Datadog
-* remove the css and use Tailwind4
 * change reative gateway to use virtual threads
-* configure kafka to receive the request from the landing page
 * change the keycloak login to auth0 (change the securityConfig)
 * use springdoc

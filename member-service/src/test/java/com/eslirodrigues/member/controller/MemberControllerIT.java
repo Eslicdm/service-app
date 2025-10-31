@@ -1,6 +1,7 @@
 package com.eslirodrigues.member.controller;
 
 import com.eslirodrigues.member.dto.CreateMemberRequest;
+import com.eslirodrigues.member.dto.UpdateMemberRequest;
 import com.eslirodrigues.member.entity.ServiceType;
 import io.restassured.builder.RequestSpecBuilder;
 import io.restassured.http.ContentType;
@@ -19,8 +20,10 @@ import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.jdbc.Sql;
 import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.containers.RabbitMQContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.utility.DockerImageName;
 
 import java.time.Instant;
 import java.time.LocalDate;
@@ -32,7 +35,8 @@ import static org.hamcrest.Matchers.*;
 @Testcontainers
 class MemberControllerIT {
 
-    private static final String BASE_PATH = "/api/v1/members/{managerId}";
+    private static final String BASE_PATH = "/api/v1/members";
+    private static final String MEMBER_ID_PATH = "/api/v1/members/{memberId}";
 
     @LocalServerPort
     private Integer port;
@@ -41,6 +45,10 @@ class MemberControllerIT {
 
     @Container
     static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:17");
+
+    @Container
+    static RabbitMQContainer rabbitmq =
+            new RabbitMQContainer(DockerImageName.parse("rabbitmq:3-management"));
 
     @Autowired
     private JwtDecoder jwtDecoder;
@@ -59,6 +67,10 @@ class MemberControllerIT {
         registry.add("spring.datasource.username", postgres::getUsername);
         registry.add("spring.datasource.password", postgres::getPassword);
         registry.add("spring.jpa.hibernate.ddl-auto", () -> "validate");
+        registry.add("spring.rabbitmq.host", rabbitmq::getHost);
+        registry.add("spring.rabbitmq.port", rabbitmq::getAmqpPort);
+        registry.add("spring.rabbitmq.username", rabbitmq::getAdminUsername);
+        registry.add("spring.rabbitmq.password", rabbitmq::getAdminPassword);
         registry.add(
                 "spring.security.oauth2.resourceserver.jwt.issuer-uri",
                 () -> "http://dummy-issuer"
@@ -99,7 +111,7 @@ class MemberControllerIT {
 
         given().spec(requestSpecification)
                 .body(request)
-                .when().post(BASE_PATH, managerId)
+                .when().queryParam("managerId", managerId).post(BASE_PATH)
                 .then().statusCode(201)
                 .body("id", notNullValue())
                 .body("name", equalTo("John Doe"))
@@ -121,14 +133,74 @@ class MemberControllerIT {
 
         given().spec(requestSpecification)
                 .body(memberToCreate)
-                .post(BASE_PATH, managerId)
+                .queryParam("managerId", managerId).post(BASE_PATH)
                 .then().statusCode(201);
 
         given().spec(requestSpecification)
-                .when().get(BASE_PATH, managerId)
+                .when().queryParam("managerId", managerId).get(BASE_PATH)
                 .then().statusCode(200)
                 .body("$", hasSize(1))
                 .body("[0].name", equalTo("Test Member"))
                 .body("[0].managerId", equalTo(managerId.intValue()));
+    }
+
+    @Test
+    @Sql(scripts = "/cleanup.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+    void updateMember_withValidRequest_shouldReturnOk() {
+        Long managerId = 3L;
+        var createRequest = new CreateMemberRequest(
+                "Member to Update",
+                "update.me@serviceapp.com",
+                LocalDate.of(2000, 2, 20),
+                null,
+                ServiceType.FREE
+        );
+
+        Integer memberId = given().spec(requestSpecification)
+                .body(createRequest)
+                .queryParam("managerId", managerId).post(BASE_PATH)
+                .then().statusCode(201)
+                .extract().path("id");
+
+        var updateRequest = new UpdateMemberRequest(
+                "Updated Name",
+                "updated.email@serviceapp.com",
+                null, null, null
+        );
+
+        given().spec(requestSpecification)
+                .body(updateRequest)
+                .when().put(MEMBER_ID_PATH, memberId)
+                .then().statusCode(200)
+                .body("id", equalTo(memberId))
+                .body("name", equalTo("Updated Name"))
+                .body("email", equalTo("updated.email@serviceapp.com"));
+    }
+
+    @Test
+    @Sql(scripts = "/cleanup.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+    void deleteMember_whenMemberExists_shouldReturnNoContent() {
+        Long managerId = 4L;
+        var createRequest = new CreateMemberRequest(
+                "Member to Delete",
+                "delete.me@serviceapp.com",
+                LocalDate.of(2001, 3, 21),
+                null,
+                ServiceType.HALF_PRICE
+        );
+
+        Integer memberId = given().spec(requestSpecification)
+                .body(createRequest)
+                .queryParam("managerId", managerId).post(BASE_PATH)
+                .then().statusCode(201)
+                .extract().path("id");
+
+        given().spec(requestSpecification)
+                .when().delete(MEMBER_ID_PATH, memberId)
+                .then().statusCode(204);
+
+        given().spec(requestSpecification)
+                .when().get(MEMBER_ID_PATH, memberId)
+                .then().statusCode(404);
     }
 }

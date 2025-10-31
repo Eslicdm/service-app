@@ -24,6 +24,7 @@ import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.containers.RabbitMQContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
@@ -53,6 +54,10 @@ class PriceControllerIT {
 
     @Autowired
     private RedisTemplate<String, PriceUpdateEventDTO> redisTemplate;
+
+    @Container
+    static RabbitMQContainer rabbitmq =
+            new RabbitMQContainer(DockerImageName.parse("rabbitmq:3-management"));
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -87,6 +92,10 @@ class PriceControllerIT {
         registry.add("spring.datasource.username", postgres::getUsername);
         registry.add("spring.datasource.password", postgres::getPassword);
         registry.add("spring.jpa.hibernate.ddl-auto", () -> "validate");
+        registry.add("spring.rabbitmq.host", rabbitmq::getHost);
+        registry.add("spring.rabbitmq.port", rabbitmq::getAmqpPort);
+        registry.add("spring.rabbitmq.username", rabbitmq::getAdminUsername);
+        registry.add("spring.rabbitmq.password", rabbitmq::getAdminPassword);
         registry.add(
                 "spring.security.oauth2.resourceserver.jwt.issuer-uri",
                 () -> "http://dummy-issuer"

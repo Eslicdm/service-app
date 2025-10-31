@@ -1,11 +1,14 @@
 package com.eslirodrigues.member.service;
 
 import com.eslirodrigues.member.dto.CreateMemberRequest;
+import com.eslirodrigues.member.dto.UpdateMemberRequest;
 import com.eslirodrigues.member.entity.Member;
+import com.eslirodrigues.member.exception.MemberNotFoundException;
 import com.eslirodrigues.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
 import java.util.List;
 
 @Service
@@ -16,6 +19,11 @@ public class MemberService {
 
     public List<Member> getAllMembersByManagerId(Long managerId) {
         return memberRepository.findAllByManagerId(managerId);
+    }
+
+    public Member getMemberById(Long memberId) {
+        return memberRepository.findById(memberId).orElseThrow(() ->
+                new MemberNotFoundException("Member not found with id: " + memberId));
     }
 
     public Member createMember(
@@ -31,5 +39,25 @@ public class MemberService {
         member.setManagerId(managerId);
 
         return memberRepository.save(member);
+    }
+
+    public Member updateMember(Long memberId, UpdateMemberRequest request) {
+        Member member = memberRepository.findById(memberId).orElseThrow(() ->
+                new MemberNotFoundException("Member not found with id: " + memberId));
+
+        Optional.ofNullable(request.name()).ifPresent(member::setName);
+        Optional.ofNullable(request.email()).ifPresent(member::setEmail);
+        Optional.ofNullable(request.birthDate()).ifPresent(member::setBirthDate);
+        Optional.ofNullable(request.photo()).ifPresent(member::setPhoto);
+        Optional.ofNullable(request.serviceType()).ifPresent(member::setServiceType);
+
+        return memberRepository.save(member);
+    }
+
+    public void deleteMember(Long memberId) {
+        if (!memberRepository.existsById(memberId)) {
+            throw new MemberNotFoundException("Member not found with id: " + memberId);
+        }
+        memberRepository.deleteById(memberId);
     }
 }
