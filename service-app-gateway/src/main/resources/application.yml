@@ -9,7 +9,7 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: http://localhost:8080/realms/service-app-realm
+          jwk-set-uri: http://localhost:8080/realms/service-app-realm/protocol/openid-connect/certs
 
   data:
     redis:
@@ -29,7 +29,7 @@ spring:
             - id: member-request-service
               uri: lb://member-request-service
               predicates:
-                  - Path=/api/v1/member-requests/**
+                  - Path=/api/v1/member-requests, /api/v1/member-requests/**
               filters:
                   - name: RequestRateLimiter
                     args:
@@ -67,14 +67,6 @@ spring:
                   args:
                     name: pricing-service-circuitbreaker
                     fallbackUri: forward:/fallback/pricing-service
-
-          globalcors:
-            cors-configurations:
-              '[/**]':
-                allowedOrigins: ["http://localhost:4200"]
-                allowedMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
-                allowedHeaders: ["*"]
-                allowCredentials: true
 
 eureka:
   client:

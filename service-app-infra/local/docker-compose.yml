@@ -1,5 +1,51 @@
 # service-app-angular port = 4200
 services:
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.3.1
+    container_name: keycloak_auth
+    command: start-dev --import-realm
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: ${KC_BOOTSTRAP_ADMIN_USERNAME}
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KC_BOOTSTRAP_ADMIN_PASSWORD}
+      REALM_ADMIN_PASSWORD: ${REALM_ADMIN_PASSWORD}
+      REALM_MANAGER_PASSWORD: ${REALM_MANAGER_PASSWORD}
+      REALM_MEMBER_PASSWORD: ${REALM_MEMBER_PASSWORD}
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://keycloak_db:5432/${KC_DB_NAME}
+      KC_DB_USERNAME: ${KC_DB_USERNAME}
+      KC_DB_PASSWORD: ${KC_DB_PASSWORD}
+      KC_HOSTNAME: localhost
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./keycloak:/opt/keycloak/data/import
+    depends_on:
+      keycloak_db:
+        condition: service_healthy
+    networks:
+      - service-app-network
+    restart: unless-stopped
+
+  keycloak_db:
+    image: postgres:17
+    container_name: keycloak_db
+    environment:
+      POSTGRES_USER: ${KC_DB_USERNAME}
+      POSTGRES_PASSWORD: ${KC_DB_PASSWORD}
+      POSTGRES_DB: ${KC_DB_NAME}
+    ports:
+      - "5434:5432"
+    volumes:
+      - keycloak-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${KC_DB_USERNAME} -d ${KC_DB_NAME}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - service-app-network
+    restart: unless-stopped
+
 # member-service port = 8081
   member_service_db:
     image: postgres:17
@@ -80,16 +126,26 @@ services:
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
+      ZOOKEEPER_SERVER_ID: 1
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "2181"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
     ports:
       - "2181:2181"
     networks:
       - service-app-network
+    restart: unless-stopped
 
   kafka:
     image: confluentinc/cp-kafka:7.5.3
     container_name: kafka_broker
     depends_on:
-      - zookeeper
+      zookeeper:
+        condition: service_healthy
+    restart: unless-stopped
     ports:
       - "9092:9092"
     environment:
@@ -103,6 +159,7 @@ services:
       - service-app-network
 
 volumes:
+  keycloak-db-data:
   member-service-db-data:
   pricing-service-db-data:
   redis-data:

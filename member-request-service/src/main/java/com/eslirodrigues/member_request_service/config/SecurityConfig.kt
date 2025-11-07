@@ -16,9 +16,9 @@ class SecurityConfig {
     fun securityFilterChain(http: HttpSecurity): SecurityFilterChain =
         http.csrf { it.disable() }
             .authorizeHttpRequests { authorize ->
-                authorize.requestMatchers("/error", "/api/**").permitAll()
-                    .requestMatchers("/actuator/health", "/actuator/info").permitAll()
+                authorize.requestMatchers("/actuator/health", "/actuator/info").permitAll()
                     .requestMatchers("/actuator/**").authenticated()
+                    .requestMatchers("/api/**").permitAll()
                     .anyRequest().denyAll()
             }
             .oauth2ResourceServer { it.jwt {} }

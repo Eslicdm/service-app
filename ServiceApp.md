@@ -42,7 +42,7 @@ This application provides a centralized platform for enterprise managers to admi
 * Java Spring Boot
 * Spring Data JPA Hibernate
 * Spring Security
-* Keycloak, OAuth2, JWT
+* Keycloak, OAuth2, OIDC, JWT
 * Springdoc OpenAPI (for Swagger UI)
 * Spring AMQP - RabbitMQ
 * Kafka
@@ -70,14 +70,15 @@ This application provides a centralized platform for enterprise managers to admi
 ## Domain: Diagram
 
 * **member-service**: some Manager can CRUD Members
-* **pricing-service**: have 3 choices (free, half price, full price), and can edit their price and text description. And can see how many Members selected some choice
+* **pricing-service**: have 3 choices (free, half price, full price), with value and description
 * **service-app-registry** register all services in the network
 * **service-app-infra** handles all the infra (docker-compose, databases, keycloak, rabbitmq, kafka, redis, etc)
 * **service-app-gateway**: organize routes, auth, ratelimiter, load balancer
 * **Landing-Feature**: show the 3 choices and description. Some AI (user send a text and AI help make decision). Some Video
-* **Member-Feature**: show the Member list and CRUD
-* **Pricing-Feature**: show the prices and CRUD
-* **Auth-Feature**: make the auth flow
+* **Management-Feature**: A single dashboard for managers. It will have two tabs:
+  * **Members Tab**: Provides full CRUD functionality for members.
+  * **Prices Tab**: Edit-only for `value` and `description` of the 3 service tiers (no create/delete)
+* **Auth-Feature**: Authentication flow
 
 
 
@@ -94,10 +95,6 @@ This application provides a centralized platform for enterprise managers to admi
 
 **Current:**
 
-* create crud for member and pricing service
-* create crud for member and pricing feature (change endpoints)
-* create one login page
-* configure OTel and Datadog
-* change reative gateway to use virtual threads
-* change the keycloak login to auth0 (change the securityConfig)
+* handle the images
+* configure OTel and Datadog (check logs)
 * use springdoc

@@ -35,7 +35,7 @@ public class Member {
     private ServiceType serviceType;
 
     @Column(name = "manager_id")
-    private Long managerId;
+    private String managerId;
 
     @Override
     public final boolean equals(Object o) {

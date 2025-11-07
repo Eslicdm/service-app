@@ -17,7 +17,7 @@ public class MemberService {
 
     private final MemberRepository memberRepository;
 
-    public List<Member> getAllMembersByManagerId(Long managerId) {
+    public List<Member> getAllMembersByManagerId(String managerId) {
         return memberRepository.findAllByManagerId(managerId);
     }
 
@@ -27,7 +27,7 @@ public class MemberService {
     }
 
     public Member createMember(
-            Long managerId,
+            String managerId,
             CreateMemberRequest request
     ) {
         Member member = new Member();

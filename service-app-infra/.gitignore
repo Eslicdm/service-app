@@ -4,3 +4,4 @@
 *.ipr
 local/.env
 .vscode/
+local/http/auth/http-client.private.env.json

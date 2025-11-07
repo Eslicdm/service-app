@@ -5,5 +5,5 @@ CREATE TABLE member (
     birth_date DATE,
     photo VARCHAR(255),
     service_type VARCHAR(100),
-    manager_id BIGINT NOT NULL
+    manager_id VARCHAR(255) NOT NULL
 );

@@ -76,7 +76,7 @@
   "clients": [
     {
       "clientId": "service-app-compose",
-      "name": "Service App Web Compose",
+      "name": "Service App Multiplatform Compose",
       "enabled": true,
       "publicClient": true,
       "directAccessGrantsEnabled": true,
@@ -92,7 +92,7 @@
       "name": "Service App Web Angular",
       "enabled": true,
       "publicClient": true,
-      "directAccessGrantsEnabled": false,
+      "directAccessGrantsEnabled": true,
       "standardFlowEnabled": true,
       "implicitFlowEnabled": false,
       "redirectUris": [
@@ -106,7 +106,24 @@
         "acr",
         "profile",
         "roles",
-        "email"
+        "email",
+        "openid"
+      ],
+      "protocolMappers": [
+        {
+          "name": "sub",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-property-mapper",
+          "consentRequired": false,
+          "config": {
+            "userinfo.token.claim": "true",
+            "user.attribute": "id",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "claim.name": "sub",
+            "jsonType.label": "String"
+          }
+        }
       ]
     },
     {

@@ -7,6 +7,7 @@ import jakarta.validation.Valid;
 import com.eslirodrigues.pricing_service.service.PriceService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -24,6 +25,7 @@ public class PriceController {
     }
 
     @PutMapping("/{priceType}")
+    @PreAuthorize("hasRole('manager') or hasRole('admin')")
     public ResponseEntity<Price> updatePrice(
             @PathVariable PriceType priceType,
             @RequestBody @Valid PriceUpdateDTO priceUpdateDTO
