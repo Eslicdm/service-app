@@ -33,6 +33,12 @@ app:
     routingkey:
       price-updated: price.updated.key
 
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+
 eureka:
   client:
     enabled: true

@@ -9,10 +9,10 @@ This application provides a centralized platform for enterprise managers to admi
 * GitHub Actions
 * SonarQube
 * Docker
-* Terraform
 * Kubernetes
 * OpenTelemetry
 * Datadog
+* Terraform
 * AWS
 
 
@@ -95,6 +95,5 @@ This application provides a centralized platform for enterprise managers to admi
 
 **Current:**
 
-* handle the images
 * configure OTel and Datadog (check logs)
-* use springdoc
+* add integration test in angular

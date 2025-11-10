@@ -16,7 +16,10 @@ class SecurityConfig {
     fun securityFilterChain(http: HttpSecurity): SecurityFilterChain =
         http.csrf { it.disable() }
             .authorizeHttpRequests { authorize ->
-                authorize.requestMatchers("/actuator/health", "/actuator/info").permitAll()
+                authorize.requestMatchers(
+                        "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html",
+                        "/actuator/health", "/actuator/info"
+                    ).permitAll()
                     .requestMatchers("/actuator/**").authenticated()
                     .requestMatchers("/api/**").permitAll()
                     .anyRequest().denyAll()

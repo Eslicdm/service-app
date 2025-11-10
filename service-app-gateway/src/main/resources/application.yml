@@ -29,7 +29,7 @@ spring:
             - id: member-request-service
               uri: lb://member-request-service
               predicates:
-                  - Path=/api/v1/member-requests, /api/v1/member-requests/**
+                  - Path=/member-request-service/**
               filters:
                   - name: RequestRateLimiter
                     args:
@@ -39,11 +39,12 @@ spring:
                     args:
                       name: member-request-service-circuitbreaker
                       fallbackUri: forward:/fallback/member-request-service
+                  - StripPrefix=1
 
             - id: member-service
               uri: lb://member-service
               predicates:
-                - Path=/api/v1/members/**
+                - Path=/member-service/**
               filters:
                 - name: RequestRateLimiter
                   args:
@@ -53,11 +54,12 @@ spring:
                   args:
                     name: member-service-circuitbreaker
                     fallbackUri: forward:/fallback/member-service
+                - StripPrefix=1
 
             - id: pricing-service
               uri: lb://pricing-service
               predicates:
-                - Path=/api/v1/prices/**
+                - Path=/pricing-service/**
               filters:
                 - name: RequestRateLimiter
                   args:
@@ -67,6 +69,20 @@ spring:
                   args:
                     name: pricing-service-circuitbreaker
                     fallbackUri: forward:/fallback/pricing-service
+                - StripPrefix=1
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  show-actuator: true
+  swagger-ui:
+    urls:
+      - name: member-service
+        url: /member-service/v3/api-docs
+      - name: pricing-service
+        url: /pricing-service/v3/api-docs
+      - name: member-request-service
+        url: /member-request-service/v3/api-docs
 
 eureka:
   client:

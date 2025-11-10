@@ -13,6 +13,11 @@
   <description>API Gateway for Service App Microservices</description>
 
   <dependencies>
+      <dependency>
+          <groupId>org.springdoc</groupId>
+          <artifactId>springdoc-openapi-starter-webflux-ui</artifactId>
+          <version>${springdoc-openapi.version}</version>
+      </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-actuator</artifactId>
