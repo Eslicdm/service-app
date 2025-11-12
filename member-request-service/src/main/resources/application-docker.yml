@@ -1,0 +1,19 @@
+spring:
+  data:
+    redis:
+      host: redis
+      password: ${REDIS_PASSWORD}
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://keycloak:8080/realms/service-app-realm
+
+  kafka:
+    bootstrap-servers: kafka:9092
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://service-app-registry:8761/eureka/

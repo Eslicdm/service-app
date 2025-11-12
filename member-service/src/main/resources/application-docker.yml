@@ -1,0 +1,36 @@
+spring:
+  threads:
+    virtual:
+      enabled: true
+
+  datasource:
+    url: jdbc:postgresql://member-service-db:5432/${MEMBER_DB_NAME}
+
+  data:
+    redis:
+      host: redis
+      password: ${REDIS_PASSWORD}
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://keycloak:8080/realms/service-app-realm
+
+  rabbitmq:
+    host: rabbitmq
+    username: ${RABBITMQ_USERNAME}
+    password: ${RABBITMQ_PW}
+
+  kafka:
+    bootstrap-servers: kafka:9092
+
+app:
+  services:
+    pricing:
+      base-url: lb://pricing-service/api/v1
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://service-app-registry:8761/eureka/

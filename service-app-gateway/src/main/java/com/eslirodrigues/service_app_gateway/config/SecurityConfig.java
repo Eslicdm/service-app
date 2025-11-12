@@ -24,6 +24,8 @@ public class SecurityConfig {
                 .csrf(CsrfSpec::disable)
                 .authorizeExchange(exchanges -> exchanges
                         .pathMatchers("/fallback/**").permitAll()
+                        .pathMatchers("/actuator/health", "actuator/info").permitAll()
+                        .pathMatchers("/actuator/**").authenticated()
                         .pathMatchers("/swagger-ui.html", "/swagger-ui/**",
                                 "/v3/api-docs/**", "/webjars/**",
                                 "/swagger-resources/**", "/*/v3/api-docs").permitAll()

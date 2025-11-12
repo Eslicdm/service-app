@@ -96,4 +96,5 @@ This application provides a centralized platform for enterprise managers to admi
 **Current:**
 
 * configure OTel and Datadog (check logs)
+* make ci/cd with github actions
 * add integration test in angular

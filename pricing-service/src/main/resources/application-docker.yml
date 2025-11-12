@@ -1,0 +1,23 @@
+spring:
+  data:
+    mongodb:
+      host: pricing-service-db
+      username: ${PRICING_DB_USERNAME}
+      password: ${PRICING_DB_PASSWORD}
+      database: ${PRICING_DB_NAME}
+
+  rabbitmq:
+    host: rabbitmq
+    username: ${RABBITMQ_USERNAME}
+    password: ${RABBITMQ_PW}
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://keycloak:8080/realms/service-app-realm
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://service-app-registry:8761/eureka/

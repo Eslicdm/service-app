@@ -2,33 +2,41 @@
 services:
   keycloak:
     image: quay.io/keycloak/keycloak:26.3.1
-    container_name: keycloak_auth
+    container_name: keycloak
     command: start-dev --import-realm
     environment:
+      KC_HOSTNAME_STRICT: false
+      KC_HOSTNAME_STRICT_BACKCHANNEL: false
       KC_BOOTSTRAP_ADMIN_USERNAME: ${KC_BOOTSTRAP_ADMIN_USERNAME}
       KC_BOOTSTRAP_ADMIN_PASSWORD: ${KC_BOOTSTRAP_ADMIN_PASSWORD}
       REALM_ADMIN_PASSWORD: ${REALM_ADMIN_PASSWORD}
       REALM_MANAGER_PASSWORD: ${REALM_MANAGER_PASSWORD}
       REALM_MEMBER_PASSWORD: ${REALM_MEMBER_PASSWORD}
       KC_DB: postgres
-      KC_DB_URL: jdbc:postgresql://keycloak_db:5432/${KC_DB_NAME}
+      KC_DB_URL: jdbc:postgresql://keycloak-db:5432/${KC_DB_NAME}
       KC_DB_USERNAME: ${KC_DB_USERNAME}
       KC_DB_PASSWORD: ${KC_DB_PASSWORD}
-      KC_HOSTNAME: localhost
+      KC_HOSTNAME: keycloak
     ports:
       - "8080:8080"
     volumes:
       - ./keycloak:/opt/keycloak/data/import
     depends_on:
-      keycloak_db:
+      keycloak-db:
         condition: service_healthy
     networks:
       - service-app-network
+    healthcheck:
+      test: ["CMD-SHELL", "timeout 5 bash -c '</dev/tcp/localhost/8080'"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
     restart: unless-stopped
 
-  keycloak_db:
+  keycloak-db:
     image: postgres:17
-    container_name: keycloak_db
+    container_name: keycloak-db
     environment:
       POSTGRES_USER: ${KC_DB_USERNAME}
       POSTGRES_PASSWORD: ${KC_DB_PASSWORD}
@@ -47,9 +55,9 @@ services:
     restart: unless-stopped
 
 # member-service port = 8081
-  member_service_db:
+  member-service-db:
     image: postgres:17
-    container_name: member_service_db
+    container_name: member-service-db
     restart: unless-stopped
     environment:
       POSTGRES_USER: ${MEMBER_DB_USERNAME}
@@ -67,10 +75,49 @@ services:
     networks:
       - service-app-network
 
+  member-service:
+    build:
+      context: ../..
+      dockerfile: member-service/Dockerfile
+    container_name: member-service
+    restart: unless-stopped
+    depends_on:
+      member-service-db:
+        condition: service_healthy
+      service-app-registry:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      otel-collector:
+        condition: service_healthy
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - OTEL_SERVICE_NAME=member-service
+      - OTEL_EXPORTER_OTLP_ENDPOINT=${OTEL_EXPORTER_OTLP_ENDPOINT}
+      - OTEL_METRICS_EXPORTER=${OTEL_METRICS_EXPORTER}
+      - OTEL_LOGS_EXPORTER=${OTEL_LOGS_EXPORTER}
+      - MEMBER_DB_USERNAME=${MEMBER_DB_USERNAME}
+      - MEMBER_DB_PASSWORD=${MEMBER_DB_PASSWORD}
+      - MEMBER_DB_NAME=${MEMBER_DB_NAME}
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - RABBITMQ_USERNAME=${RABBITMQ_USERNAME}
+      - RABBITMQ_PW=${RABBITMQ_PW}
+      - JAVA_TOOL_OPTIONS=-javaagent:/app/agents/opentelemetry-javaagent.jar
+    ports:
+      - "8081:8081"
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8081/actuator/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    networks:
+      - service-app-network
+
 # pricing-service port = 8082
-  pricing_service_db:
+  pricing-service-db:
     image: mongo:7.0
-    container_name: pricing_service_db
+    container_name: pricing-service-db
     restart: unless-stopped
     environment:
       MONGO_INITDB_ROOT_USERNAME: ${PRICING_DB_USERNAME}
@@ -82,10 +129,151 @@ services:
       - pricing-service-db-data:/data/db
     networks:
       - service-app-network
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh --quiet --username ${PRICING_DB_USERNAME} --password ${PRICING_DB_PASSWORD} --authenticationDatabase admin
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  pricing-service:
+    build:
+      context: ../..
+      dockerfile: pricing-service/Dockerfile
+    container_name: pricing-service
+    restart: unless-stopped
+    depends_on:
+      pricing-service-db:
+        condition: service_healthy
+      service-app-registry:
+        condition: service_healthy
+      otel-collector:
+        condition: service_healthy
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - OTEL_SERVICE_NAME=pricing-service
+      - OTEL_EXPORTER_OTLP_ENDPOINT=${OTEL_EXPORTER_OTLP_ENDPOINT}
+      - OTEL_METRICS_EXPORTER=${OTEL_METRICS_EXPORTER}
+      - OTEL_LOGS_EXPORTER=${OTEL_LOGS_EXPORTER}
+      - PRICING_DB_USERNAME=${PRICING_DB_USERNAME}
+      - PRICING_DB_PASSWORD=${PRICING_DB_PASSWORD}
+      - PRICING_DB_NAME=${PRICING_DB_NAME}
+      - RABBITMQ_USERNAME=${RABBITMQ_USERNAME}
+      - RABBITMQ_PW=${RABBITMQ_PW}
+      - JAVA_TOOL_OPTIONS=-javaagent:/app/agents/opentelemetry-javaagent.jar
+    ports:
+      - "8082:8082"
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8082/actuator/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    networks:
+      - service-app-network
+
+  member-request-service:
+    build:
+      context: ../..
+      dockerfile: member-request-service/Dockerfile
+    container_name: member-request-service
+    restart: unless-stopped
+    depends_on:
+      kafka:
+        condition: service_healthy
+      service-app-registry:
+        condition: service_healthy
+      otel-collector:
+        condition: service_healthy
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - OTEL_SERVICE_NAME=member-request-service
+      - OTEL_EXPORTER_OTLP_ENDPOINT=${OTEL_EXPORTER_OTLP_ENDPOINT}
+      - OTEL_METRICS_EXPORTER=${OTEL_METRICS_EXPORTER}
+      - OTEL_LOGS_EXPORTER=${OTEL_LOGS_EXPORTER}
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - JAVA_TOOL_OPTIONS=-javaagent:/app/agents/opentelemetry-javaagent.jar
+    ports:
+      - "8084:8084"
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8084/actuator/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    networks:
+      - service-app-network
+
+  service-app-gateway:
+    build:
+      context: ../..
+      dockerfile: service-app-gateway/Dockerfile
+    container_name: service-app-gateway
+    restart: unless-stopped
+    depends_on:
+      keycloak:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      service-app-registry:
+        condition: service_healthy
+      otel-collector:
+        condition: service_healthy
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - OTEL_SERVICE_NAME=service-app-gateway
+      - OTEL_EXPORTER_OTLP_ENDPOINT=${OTEL_EXPORTER_OTLP_ENDPOINT}
+      - OTEL_METRICS_EXPORTER=${OTEL_METRICS_EXPORTER}
+      - OTEL_LOGS_EXPORTER=${OTEL_LOGS_EXPORTER}
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - RABBITMQ_USERNAME=${RABBITMQ_USERNAME}
+      - RABBITMQ_PW=${RABBITMQ_PW}
+      - JAVA_TOOL_OPTIONS=-javaagent:/app/agents/opentelemetry-javaagent.jar
+      - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI=http://localhost:8080/realms/service-app-realm
+      - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI=http://localhost:8080/realms/service-app-realm/protocol/openid-connect/certs
+    ports:
+      - "8090:8090"
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8090/actuator/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    networks:
+      - service-app-network
+
+  service-app-registry:
+    build:
+      context: ../..
+      dockerfile: service-app-registry/Dockerfile
+    container_name: service-app-registry
+    restart: unless-stopped
+    depends_on:
+      otel-collector:
+        condition: service_healthy
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - OTEL_SERVICE_NAME=service-app-registry
+      - OTEL_EXPORTER_OTLP_ENDPOINT=${OTEL_EXPORTER_OTLP_ENDPOINT}
+      - OTEL_METRICS_EXPORTER=${OTEL_METRICS_EXPORTER}
+      - OTEL_LOGS_EXPORTER=${OTEL_LOGS_EXPORTER}
+      - JAVA_TOOL_OPTIONS=-javaagent:/app/agents/opentelemetry-javaagent.jar
+    ports:
+      - "8761:8761"
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8761/actuator/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    networks:
+      - service-app-network
 
   redis:
     image: redis:7-alpine
-    container_name: redis_cache
+    container_name: redis
     command: redis-server --requirepass ${REDIS_PASSWORD}
     restart: unless-stopped
     ports:
@@ -102,7 +290,7 @@ services:
 
   rabbitmq:
     image: rabbitmq:3-management
-    container_name: rabbitmq_broker
+    container_name: rabbitmq
     restart: unless-stopped
     environment:
       RABBITMQ_DEFAULT_USER: ${RABBITMQ_USERNAME}
@@ -141,7 +329,7 @@ services:
 
   kafka:
     image: confluentinc/cp-kafka:7.5.3
-    container_name: kafka_broker
+    container_name: kafka
     depends_on:
       zookeeper:
         condition: service_healthy
@@ -151,12 +339,42 @@ services:
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,PLAINTEXT_HOST://0.0.0.0:29092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:9092
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
     networks:
       - service-app-network
+    healthcheck:
+      test: ["CMD", "cub", "kafka-ready", "-b", "localhost:9092", "1", "1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.114.0
+    container_name: otel-collector
+    restart: unless-stopped
+    command: ["--config=/etc/otel-collector-config.yml"]
+    environment:
+      DD_API_KEY: ${DD_API_KEY}
+    volumes:
+      - ./otel-collector-config.yml:/etc/otel-collector-config.yml
+    ports:
+      - "4317:4317"   # OTLP gRPC receiver
+      - "4318:4318"   # OTLP HTTP receiver
+      - "8888:8888"   # Prometheus metrics endpoint
+      - "13133:13133" # Health check
+    networks:
+      - service-app-network
+    healthcheck:
+      test: ["CMD", "/otelcol-contrib", "validate", "--config=/etc/otel-collector-config.yml"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
 volumes:
   keycloak-db-data:

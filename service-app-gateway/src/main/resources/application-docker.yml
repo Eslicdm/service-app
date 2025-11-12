@@ -1,0 +1,21 @@
+spring:
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: http://localhost:8080/realms/service-app-realm/protocol/openid-connect/certs
+
+  data:
+    redis:
+      host: redis
+      password: ${REDIS_PASSWORD}
+
+  rabbitmq:
+    host: rabbitmq
+    username: ${RABBITMQ_USERNAME}
+    password: ${RABBITMQ_PW}
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://service-app-registry:8761/eureka/

@@ -1,0 +1,79 @@
+receivers:
+  otlp:
+    protocols:
+      http:
+        endpoint: "0.0.0.0:4318"
+      grpc:
+        endpoint: "0.0.0.0:4317"
+  hostmetrics:
+    collection_interval: 10s
+    scrapers:
+      paging:
+        metrics:
+          system.paging.utilization:
+            enabled: true
+      cpu:
+        metrics:
+          system.cpu.utilization:
+            enabled: true
+      disk:
+      filesystem:
+        metrics:
+          system.filesystem.utilization:
+            enabled: true
+      load:
+      memory:
+      network:
+      processes:
+
+processors:
+  batch:
+    send_batch_max_size: 100
+    send_batch_size: 10
+    timeout: 10s
+
+  memory_limiter:
+    check_interval: 1s
+    limit_mib: 512
+
+  resource:
+    attributes:
+      - key: deployment.environment
+        value: local
+        action: upsert
+      - key: service.name
+        value: "unknown-service"
+        action: insert
+
+exporters:
+  datadog:
+    api:
+      key: ${DD_API_KEY}
+      site: "datadoghq.com"
+    traces:
+      trace_buffer: 500
+    metrics:
+      histograms:
+        mode: distributions
+        send_count_sum_metrics: true
+
+extensions:
+  health_check:
+    endpoint: "0.0.0.0:13133"
+    path: "/"
+
+service:
+  pipelines:
+    metrics:
+      receivers: [ otlp, hostmetrics ]
+      processors: [ memory_limiter, resource, batch ]
+      exporters: [ datadog ]
+    traces:
+      receivers: [ otlp ]
+      processors: [ memory_limiter, resource, batch ]
+      exporters: [ datadog ]
+    logs:
+      receivers: [ otlp ]
+      processors: [ memory_limiter, resource, batch ]
+      exporters: [ datadog ]
+  extensions: [ health_check ]
