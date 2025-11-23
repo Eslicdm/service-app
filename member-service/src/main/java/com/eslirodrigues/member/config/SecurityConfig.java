@@ -29,9 +29,11 @@ public class SecurityConfig {
                                         "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html",
                                         "/actuator/health", "/actuator/info"
                                 ).permitAll()
-                        .requestMatchers("/actuator/**").authenticated()
-                        .requestMatchers("/api/**").authenticated()
-                        .anyRequest().denyAll()
+                                .requestMatchers("/actuator/health/**",
+                                        "/actuator/info").permitAll()
+                                .requestMatchers("/actuator/**").authenticated()
+                                .requestMatchers("/api/**").authenticated()
+                                .anyRequest().denyAll()
                 )
                 .oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt ->
                         jwt.jwtAuthenticationConverter(jwtAuthenticationConverter())))

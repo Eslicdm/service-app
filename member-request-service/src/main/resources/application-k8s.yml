@@ -1,0 +1,60 @@
+spring:
+  application:
+    name: member-request-service
+
+  threads:
+    virtual:
+      enabled: true
+
+  data:
+    redis:
+      host: redis
+      port: 6379
+      password: ${REDIS_PASSWORD}
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://keycloak:8080/realms/service-app-realm
+
+  kafka:
+    bootstrap-servers: kafka:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      properties:
+        spring.json.add.type.headers: false
+
+  cloud:
+    kubernetes:
+      discovery:
+        enabled: true
+        all-namespaces: false
+      reload:
+        enabled: false
+
+eureka:
+  client:
+    enabled: false
+
+app:
+  kafka:
+    topic:
+      member-requests: member.requests.topic
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: when-authorized
+      probes:
+        enabled: true
+  health:
+    livenessState:
+      enabled: true
+    readinessState:
+      enabled: true

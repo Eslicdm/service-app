@@ -1,0 +1,58 @@
+spring:
+  application:
+    name: pricing-service
+
+  data:
+    mongodb:
+      host: pricing-service-db
+      port: 27017
+      username: ${PRICING_DB_USERNAME}
+      password: ${PRICING_DB_PASSWORD}
+      database: ${PRICING_DB_NAME}
+      authentication-database: admin
+
+  rabbitmq:
+    host: rabbitmq
+    port: 5672
+    username: ${RABBITMQ_USERNAME}
+    password: ${RABBITMQ_PW}
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://keycloak:8080/realms/service-app-realm
+
+  cloud:
+    kubernetes:
+      discovery:
+        enabled: true
+        all-namespaces: false
+      reload:
+        enabled: false
+eureka:
+  client:
+    enabled: false
+
+app:
+  rabbitmq:
+    exchange:
+      pricing: pricing.exchange
+    routingkey:
+      price-updated: price.updated.key
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: when-authorized
+      probes:
+        enabled: true
+  health:
+    livenessState:
+      enabled: true
+    readinessState:
+      enabled: true

@@ -2,6 +2,7 @@ package com.eslirodrigues.service_app_gateway.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.Customizer;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
@@ -24,7 +25,7 @@ public class SecurityConfig {
                 .csrf(CsrfSpec::disable)
                 .authorizeExchange(exchanges -> exchanges
                         .pathMatchers("/fallback/**").permitAll()
-                        .pathMatchers("/actuator/health", "actuator/info").permitAll()
+                        .pathMatchers("/actuator/health/**", "/actuator/info").permitAll()
                         .pathMatchers("/actuator/**").authenticated()
                         .pathMatchers("/swagger-ui.html", "/swagger-ui/**",
                                 "/v3/api-docs/**", "/webjars/**",
@@ -32,9 +33,7 @@ public class SecurityConfig {
                         .pathMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .anyExchange().authenticated()
                 )
-                .oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt -> jwt.jwkSetUri(
-                        "http://localhost:8080/realms/service-app-realm/protocol/openid-connect/certs"
-                )))
+                .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()))
                 .build();
     }
 

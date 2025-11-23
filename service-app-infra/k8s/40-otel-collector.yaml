@@ -1,0 +1,131 @@
+# OpenTelemetry Collector for metrics, traces, and logs
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: otel-collector-config
+  namespace: service-app
+data:
+  otel-collector-config.yml: |
+    receivers:
+      otlp:
+        protocols:
+          grpc:
+            endpoint: "0.0.0.0:4317"
+          http:
+            endpoint: "0.0.0.0:4318"
+
+    processors:
+      batch:
+        send_batch_max_size: 100
+        send_batch_size: 10
+        timeout: 10s
+      memory_limiter:
+        check_interval: 1s
+        limit_mib: 512
+      resource:
+        attributes:
+          - key: deployment.environment
+            value: k8s
+            action: upsert
+
+    exporters:
+      datadog:
+        api:
+          key: ${DD_API_KEY}
+          site: "datadoghq.com"
+        traces:
+          trace_buffer: 500
+        metrics:
+          histograms:
+            mode: distributions
+            send_count_sum_metrics: true
+
+    extensions:
+      health_check:
+        endpoint: "0.0.0.0:13133"
+
+    service:
+      extensions: [health_check]
+      pipelines:
+        traces:
+          receivers: [otlp]
+          processors: [memory_limiter, resource, batch]
+          exporters: [datadog]
+        metrics:
+          receivers: [otlp]
+          processors: [memory_limiter, resource, batch]
+          exporters: [datadog]
+        logs:
+          receivers: [otlp]
+          processors: [memory_limiter, resource, batch]
+          exporters: [datadog]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: otel-collector
+  namespace: service-app
+  labels:
+    app: otel-collector
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: otel-collector
+  template:
+    metadata:
+      labels:
+        app: otel-collector
+    spec:
+      automountServiceAccountToken: false
+      containers:
+        - name: otel-collector
+          image: otel/opentelemetry-collector-contrib:0.114.0
+          args: ["--config=/etc/otel-collector-config.yml"]
+          ports:
+            - name: otlp-grpc
+              containerPort: 4317
+            - name: otlp-http
+              containerPort: 4318
+            - name: health-check
+              containerPort: 13133
+          env:
+            - name: DD_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: service-app-secrets
+                  key: DD_API_KEY
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+              ephemeral-storage: "256Mi"
+            limits:
+              memory: "256Mi"
+              cpu: "250m"
+              ephemeral-storage: "512Mi"
+          volumeMounts:
+            - name: otel-collector-config-vol
+              mountPath: /etc/otel-collector-config.yml
+              subPath: otel-collector-config.yml
+      volumes:
+        - name: otel-collector-config-vol
+          configMap:
+            name: otel-collector-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: otel-collector
+  namespace: service-app
+spec:
+  selector:
+    app: otel-collector
+  ports:
+    - name: otlp-grpc
+      port: 4317
+      targetPort: 4317
+    - name: otlp-http
+      port: 4318
+      targetPort: 4318

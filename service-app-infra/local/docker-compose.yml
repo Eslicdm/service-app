@@ -17,6 +17,8 @@ services:
       KC_DB_USERNAME: ${KC_DB_USERNAME}
       KC_DB_PASSWORD: ${KC_DB_PASSWORD}
       KC_HOSTNAME: keycloak
+      # To resolve the iss with keycloak, angular and services. PowerShell:
+      # Add-Content -Path C:\Windows\System32\drivers\etc\hosts -Value "`n127.0.0.1 keycloak"
     ports:
       - "8080:8080"
     volumes:
@@ -231,8 +233,6 @@ services:
       - RABBITMQ_USERNAME=${RABBITMQ_USERNAME}
       - RABBITMQ_PW=${RABBITMQ_PW}
       - JAVA_TOOL_OPTIONS=-javaagent:/app/agents/opentelemetry-javaagent.jar
-      - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI=http://localhost:8080/realms/service-app-realm
-      - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI=http://localhost:8080/realms/service-app-realm/protocol/openid-connect/certs
     ports:
       - "8090:8090"
     healthcheck:

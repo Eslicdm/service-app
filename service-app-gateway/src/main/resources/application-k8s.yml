@@ -1,0 +1,131 @@
+spring:
+  application:
+    name: service-app-gateway
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: http://keycloak:8080/realms/service-app-realm/protocol/openid-connect/certs
+
+  data:
+    redis:
+      host: redis
+      port: 6379
+      password: ${REDIS_PASSWORD}
+
+  rabbitmq:
+    host: rabbitmq
+    port: 5672
+    username: ${RABBITMQ_USERNAME}
+    password: ${RABBITMQ_PW}
+
+  cloud:
+    kubernetes:
+      discovery:
+        enabled: true
+        all-namespaces: false
+      loadbalancer:
+        mode: SERVICE
+      reload:
+        enabled: false
+eureka:
+  client:
+    enabled: false
+
+    gateway:
+      discovery:
+        locator:
+          enabled: false
+
+      routes:
+        - id: member-request-service-api
+          uri: lb://member-request-service
+          predicates:
+            - Path=/api/v1/member-requests/**
+          filters:
+            - name: RequestRateLimiter
+              args:
+                rate-limiter: "#{@defaultRateLimiter}"
+                key-resolver: "#{@userKeyResolver}"
+            - name: CircuitBreaker
+              args:
+                name: member-request-service-circuitbreaker
+                fallbackUri: forward:/fallback/member-request-service
+
+        - id: member-request-service-springdoc
+          uri: lb://member-request-service
+          predicates:
+            - Path=/member-request-service/v3/api-docs
+          filters:
+            - StripPrefix=1
+
+        - id: member-service-api
+          uri: lb://member-service
+          predicates:
+            - Path=/api/v1/members/**
+          filters:
+            - name: RequestRateLimiter
+              args:
+                rate-limiter: "#{@defaultRateLimiter}"
+                key-resolver: "#{@userKeyResolver}"
+            - name: CircuitBreaker
+              args:
+                name: member-service-circuitbreaker
+                fallbackUri: forward:/fallback/member-service
+
+        - id: member-service-springdoc
+          uri: lb://member-service
+          predicates:
+            - Path=/member-service/v3/api-docs
+          filters:
+            - StripPrefix=1
+
+        - id: pricing-service-api
+          uri: lb://pricing-service
+          predicates:
+            - Path=/api/v1/prices/**
+          filters:
+            - name: RequestRateLimiter
+              args:
+                rate-limiter: "#{@defaultRateLimiter}"
+                key-resolver: "#{@userKeyResolver}"
+            - name: CircuitBreaker
+              args:
+                name: pricing-service-circuitbreaker
+                fallbackUri: forward:/fallback/pricing-service
+
+        - id: pricing-service-springdoc
+          uri: lb://pricing-service
+          predicates:
+            - Path=/pricing-service/v3/api-docs
+          filters:
+            - StripPrefix=1
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  show-actuator: true
+  swagger-ui:
+    urls:
+      - name: member-service
+        url: /member-service/v3/api-docs
+      - name: pricing-service
+        url: /pricing-service/v3/api-docs
+      - name: member-request-service
+        url: /member-request-service/v3/api-docs
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "health,info,metrics,prometheus,gateway"
+  endpoint:
+    health:
+      probes:
+        enabled: true
+  health:
+    livenessState:
+      enabled: true
+    readinessState:
+      enabled: true

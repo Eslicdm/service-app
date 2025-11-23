@@ -26,10 +26,10 @@ spring:
               enabled: true
 
           routes:
-            - id: member-request-service
+            - id: member-request-service-api
               uri: lb://member-request-service
               predicates:
-                  - Path=/member-request-service/**
+                  - Path=/api/v1/member-requests/**
               filters:
                   - name: RequestRateLimiter
                     args:
@@ -39,12 +39,18 @@ spring:
                     args:
                       name: member-request-service-circuitbreaker
                       fallbackUri: forward:/fallback/member-request-service
-                  - StripPrefix=1
 
-            - id: member-service
+            - id: member-request-service-springdoc
+              uri: lb://member-request-service
+              predicates:
+                - Path=/member-request-service/v3/api-docs
+              filters:
+                - StripPrefix=1
+
+            - id: member-service-api
               uri: lb://member-service
               predicates:
-                - Path=/member-service/**
+                - Path=/api/v1/members/**
               filters:
                 - name: RequestRateLimiter
                   args:
@@ -54,12 +60,18 @@ spring:
                   args:
                     name: member-service-circuitbreaker
                     fallbackUri: forward:/fallback/member-service
+
+            - id: member-service-springdoc
+              uri: lb://member-service
+              predicates:
+                - Path=/member-service/v3/api-docs
+              filters:
                 - StripPrefix=1
 
-            - id: pricing-service
+            - id: pricing-service-api
               uri: lb://pricing-service
               predicates:
-                - Path=/pricing-service/**
+                - Path=/api/v1/prices/**
               filters:
                 - name: RequestRateLimiter
                   args:
@@ -69,6 +81,12 @@ spring:
                   args:
                     name: pricing-service-circuitbreaker
                     fallbackUri: forward:/fallback/pricing-service
+
+            - id: pricing-service-springdoc
+              uri: lb://pricing-service
+              predicates:
+                - Path=/pricing-service/v3/api-docs
+              filters:
                 - StripPrefix=1
 
 springdoc:
