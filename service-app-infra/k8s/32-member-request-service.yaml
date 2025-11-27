@@ -31,6 +31,11 @@ spec:
               value: "http://otel-collector:4318"
             - name: OTEL_METRICS_EXPORTER
               value: "otlp"
+            - name: OTEL_TRACES_EXPORTER
+              valueFrom:
+                secretKeyRef:
+                  name: service-app-secrets
+                  key: OTEL_TRACES_EXPORTER
             - name: JAVA_TOOL_OPTIONS
               value: "-javaagent:/app/agents/opentelemetry-javaagent.jar"
             - name: REDIS_PASSWORD

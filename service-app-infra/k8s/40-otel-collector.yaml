@@ -15,6 +15,27 @@ data:
           http:
             endpoint: "0.0.0.0:4318"
 
+      hostmetrics:
+        collection_interval: 10s
+        scrapers:
+          paging:
+            metrics:
+              system.paging.utilization:
+                enabled: true
+          cpu:
+            metrics:
+              system.cpu.utilization:
+                enabled: true
+          disk:
+          filesystem:
+            metrics:
+              system.filesystem.utilization:
+                enabled: true
+          load:
+          memory:
+          network:
+          processes:
+
     processors:
       batch:
         send_batch_max_size: 100
@@ -28,6 +49,40 @@ data:
           - key: deployment.environment
             value: k8s
             action: upsert
+    
+      # Transform OTel metric names to Datadog-compatible names
+      metricstransform:
+        transforms:
+          # JVM Heap Memory
+          - include: process.runtime.jvm.memory.usage
+            action: update
+            new_name: jvm.heap_memory
+            operations:
+              - action: add_label
+                new_label: type
+                new_value: used
+          - include: process.runtime.jvm.memory.limit
+            action: update
+            new_name: jvm.heap_memory
+            operations:
+              - action: add_label
+                new_label: type
+                new_value: max
+
+          # JVM GC Duration
+          - include: process.runtime.jvm.gc.duration
+            action: update
+            new_name: jvm.gc.duration
+
+          # JVM Thread Count
+          - include: process.runtime.jvm.threads.count
+            action: update
+            new_name: jvm.thread.count
+      
+          # JVM CPU Utilization
+          - include: process.runtime.jvm.cpu.utilization
+            action: update
+            new_name: jvm.cpu.recent_utilization
 
     exporters:
       datadog:
@@ -36,14 +91,24 @@ data:
           site: "datadoghq.com"
         traces:
           trace_buffer: 500
+          span_name_as_resource_name: true
         metrics:
           histograms:
             mode: distributions
             send_count_sum_metrics: true
+          sums:
+            cumulative_monotonic_mode: to_delta
+        host_metadata:
+          enabled: true
+          hostname_source: config_or_system
+          tags:
+            - "env:k8s"
+            - "source:otel-collector"
 
     extensions:
       health_check:
         endpoint: "0.0.0.0:13133"
+        path: "/"
 
     service:
       extensions: [health_check]
@@ -53,8 +118,8 @@ data:
           processors: [memory_limiter, resource, batch]
           exporters: [datadog]
         metrics:
-          receivers: [otlp]
-          processors: [memory_limiter, resource, batch]
+          receivers: [ otlp, hostmetrics ]
+          processors: [ memory_limiter, resource, metricstransform, batch ]
           exporters: [datadog]
         logs:
           receivers: [otlp]
