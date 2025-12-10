@@ -1,0 +1,25 @@
+### RAG Ask
+POST {{baseUrl}}/rag/ask
+Content-Type: application/json
+
+{
+  "question": "I only what to enjoy the pool with my family"
+}
+
+
+### Google Example
+POST {{googleUrl}}
+X-goog-api-key: {{googleApiKey}}
+Content-Type: application/json
+
+{
+    "contents": [
+      {
+        "parts": [
+          {
+            "text": "Explain how AI works in a few words"
+          }
+        ]
+      }
+    ]
+  }

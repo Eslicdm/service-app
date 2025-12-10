@@ -1,0 +1,22 @@
+server:
+  port: 8085
+
+spring:
+  application:
+    name: recommendation-service
+
+  ai:
+    google:
+      genai:
+        api-key: ${GOOGLE_API_KEY}
+        chat:
+          options:
+            model: ${GOOGLE_CHAT_MODEL}
+            temperature: 0.5
+        embedding:
+          api-key: ${GOOGLE_API_KEY}
+
+    vectorstore:
+      weaviate:
+        host: localhost:8091
+        scheme: http

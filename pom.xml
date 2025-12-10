@@ -34,6 +34,7 @@
         <module>member-service</module>
         <module>pricing-service</module>
         <module>member-request-service</module>
+        <module>recommendation-service</module>
     </modules>
 
     <dependencyManagement>

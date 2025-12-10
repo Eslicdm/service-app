@@ -17,7 +17,7 @@ This application provides a centralized platform for enterprise managers to admi
 
 
 
-**Compose Multiplatform Mobile/Web:**
+**Compose Multiplatform Mobile/Web/Desktop:**
 
 * Ktor\_Client
 * SQLDelight
@@ -45,7 +45,7 @@ This application provides a centralized platform for enterprise managers to admi
 * Keycloak, OAuth2, OIDC, JWT
 * Springdoc OpenAPI (for Swagger UI)
 * Spring AMQP - RabbitMQ
-* Kafka
+* Spring Kafka
 * Spring Validation
 * Testing:
 
@@ -61,20 +61,24 @@ This application provides a centralized platform for enterprise managers to admi
   * Netflix Eureka Client
   * Gateway
   * Config
+  * Kubernetes
 
 * Redis
 * Flyway
+* Spring AI (ChatClient, RAG, Google GenAI, VectorDatabase (Weaviate))
 
 
 
-## Domain: Diagram
+## Domain:
 
 * **member-service**: some Manager can CRUD Members
 * **pricing-service**: have 3 choices (free, half price, full price), with value and description
+* **member-request-service**: receive member request and send to member-service
+* **recommendation-service**: helps users choose a service plan using an AI assistant.
 * **service-app-registry** register all services in the network
-* **service-app-infra** handles all the infra (docker-compose, databases, keycloak, rabbitmq, kafka, redis, etc)
+* **service-app-infra** handles all the infra (k8s, docker-compose, etc.)
 * **service-app-gateway**: organize routes, auth, ratelimiter, load balancer
-* **Landing-Feature**: show the 3 choices and description. Some AI (user send a text and AI help make decision). Some Video
+* **Landing-Feature**: show the 3 choices and description. Some AI (user sends a text and AI helps make a decision)
 * **Management-Feature**: A single dashboard for managers. It will have two tabs:
   * **Members Tab**: Provides full CRUD functionality for members.
   * **Prices Tab**: Edit-only for `value` and `description` of the 3 service tiers (no create/delete)
@@ -82,19 +86,20 @@ This application provides a centralized platform for enterprise managers to admi
 
 
 
-## Later:
+## To-do:
 
 * **notification-service**: send email to Member saying that the Service was confirmed
 * Add translation for PT-br
 * stress test
 * create readme for each service, and some diagram (Excalidraw, C4)
+* make ci/cd with github actions when using AWS and Terraform
+* add some video in the landing-feature
+* create figma layout
 
 
 
-## To-do:
+## In Progress:
 
-**Current:**
 
-* configure OTel and Datadog (check logs)
-* make ci/cd with github actions
+* create a k8s and docker for recommendation-service
 * add integration test in angular
