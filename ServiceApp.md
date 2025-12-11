@@ -29,6 +29,7 @@ This application provides a centralized platform for enterprise managers to admi
 **Web Angular:**
 
 * Angular Material
+* Tailwind
 * HttpClient
 * Jasmine
 * Karma
@@ -102,4 +103,5 @@ This application provides a centralized platform for enterprise managers to admi
 
 
 * create a k8s and docker for recommendation-service
+* adjust the CMP
 * add integration test in angular
