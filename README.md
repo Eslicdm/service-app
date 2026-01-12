@@ -1,4 +1,4 @@
-# Enterprise Subscription Management Platform
+# Club Membership Management Platform
 
 [![Java](https://img.shields.io/badge/Java-21-orange.svg)](https://www.java.com/)
 [![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.x-green.svg)](https://spring.io/projects/spring-boot)
@@ -8,12 +8,13 @@
 
 ## 📖 Overview
 
-This application is a centralized platform designed for enterprise managers to administer service subscriptions for their members. It facilitates dynamic pricing management, member administration, and provides a public-facing portal where members can view service tiers and receive AI-driven recommendations.
+This application is a comprehensive platform designed for managing an exclusive recreational club. It facilitates dynamic pricing for membership tiers (Garden, Club, Patron), member administration, and provides a public-facing portal where prospective members can view benefits and receive AI-driven recommendations. The system features role-based access control, directing Managers to the administration dashboard and Members to social features like the exclusive chat.
 
 ## 🚀 Key Features
 
-*   **Management Dashboard:** A centralized hub for managers to administer members (CRUD) and adjust pricing tiers.
-*   **Public Portal:** A user-friendly landing page displaying service choices (Free, Half Price, Full Price).
+*   **Role-Based Access:** Secure routing based on user roles—Managers access the Dashboard, while Members access the Chat and Portal.
+*   **Management Dashboard:** A centralized hub for managers to administer club members (CRUD) and adjust membership pricing tiers.
+*   **Public Portal:** A user-friendly landing page displaying membership choices (Garden Pass, Club Membership, Patron Membership).
 *   **AI Recommendation Assistant:** Uses **Spring AI (RAG + Google GenAI)** to help users select the best plan based on natural language input.
 *   **Dynamic Pricing:** Real-time updates to service descriptions and values.
 *   **Secure Authentication:** Robust auth flow using Keycloak, OAuth2, and OIDC.

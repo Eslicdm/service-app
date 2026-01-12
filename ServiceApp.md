@@ -1,4 +1,4 @@
-This application provides a centralized platform for enterprise managers to administer service subscriptions for their members. It allows for dynamic pricing management, member administration, and provides a public-facing portal for members to view and select service tiers.
+This application provides a centralized platform for managing a recreational club. It allows for dynamic pricing management of membership tiers, member administration, and provides a public-facing portal for users to view and select membership options. The system distinguishes between Managers and Members, providing tailored interfaces for each (Dashboard vs. Chat).
 
 
 
@@ -73,7 +73,7 @@ This application provides a centralized platform for enterprise managers to admi
 ## Domain:
 
 * **member-service**: some Manager can CRUD Members
-* **pricing-service**: have 3 choices (free, half price, full price), with value and description
+* **pricing-service**: have 3 choices (Garden, Club, Patron), with value and description
 * **member-request-service**: receive member request and send to member-service
 * **recommendation-service**: helps users choose a service plan using an AI assistant.
 * **service-app-registry** register all services in the network
@@ -83,13 +83,15 @@ This application provides a centralized platform for enterprise managers to admi
 * **Management-Feature**: A single dashboard for managers. It will have two tabs:
   * **Members Tab**: Provides full CRUD functionality for members.
   * **Prices Tab**: Edit-only for `value` and `description` of the 3 service tiers (no create/delete)
-* **Auth-Feature**: Authentication flow
+* **Chat-Feature**: A real-time chat interface for authenticated members (Role: Member) to interact.
+* **Auth-Feature**: Authentication flow handling Roles (Manager/Member).
 
 
 
 ## To-do:
 
 * **notification-service**: send email to Member saying that the Service was confirmed
+* * **Chat-Feature**: a chat for authenticated members talk with each other
 * Add translation for PT-br
 * stress test
 * create readme for each service, and some diagram (Excalidraw, C4)
