@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import com.eslirodrigues.member.service.MemberService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -76,7 +77,7 @@ public class MemberController {
     })
     public ResponseEntity<Member> createMember(
             @AuthenticationPrincipal Jwt jwt,
-            @RequestBody CreateMemberRequest request
+            @Valid @RequestBody CreateMemberRequest request
     ) {
         String managerId = jwt.getSubject();
 
@@ -94,7 +95,8 @@ public class MemberController {
             @ApiResponse(responseCode = "404", description = "Not Found - Member with the given ID does not exist")
     })
     public ResponseEntity<Member> updateMember(
-            @Parameter(description = "ID of the member to update", required = true) @PathVariable Long memberId,
+            @Parameter(description = "ID of the member to update", required = true)
+            @PathVariable Long memberId,
             @RequestBody UpdateMemberRequest request
     ) {
         Member updatedMember = memberService.updateMember(memberId, request);
@@ -110,7 +112,8 @@ public class MemberController {
             @ApiResponse(responseCode = "403", description = "Forbidden - User does not have 'manager' or 'admin' role")
     })
     public ResponseEntity<Void> deleteMember(
-            @Parameter(description = "ID of the member to delete", required = true) @PathVariable Long memberId
+            @Parameter(description = "ID of the member to delete", required = true)
+            @PathVariable Long memberId
     ) {
         memberService.deleteMember(memberId);
         return ResponseEntity.noContent().build();

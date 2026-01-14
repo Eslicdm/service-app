@@ -3,7 +3,7 @@ package com.eslirodrigues.member.service;
 import com.eslirodrigues.member.dto.CreateMemberRequest;
 import com.eslirodrigues.member.dto.UpdateMemberRequest;
 import com.eslirodrigues.member.entity.Member;
-import com.eslirodrigues.member.exception.MemberNotFoundException;
+import jakarta.persistence.EntityNotFoundException;
 import com.eslirodrigues.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -23,7 +23,7 @@ public class MemberService {
 
     public Member getMemberById(Long memberId) {
         return memberRepository.findById(memberId).orElseThrow(() ->
-                new MemberNotFoundException("Member not found with id: " + memberId));
+                new EntityNotFoundException("Member not found with id: " + memberId));
     }
 
     public Member createMember(
@@ -43,7 +43,7 @@ public class MemberService {
 
     public Member updateMember(Long memberId, UpdateMemberRequest request) {
         Member member = memberRepository.findById(memberId).orElseThrow(() ->
-                new MemberNotFoundException("Member not found with id: " + memberId));
+                new EntityNotFoundException("Member not found with id: " + memberId));
 
         Optional.ofNullable(request.name()).ifPresent(member::setName);
         Optional.ofNullable(request.email()).ifPresent(member::setEmail);
@@ -56,7 +56,7 @@ public class MemberService {
 
     public void deleteMember(Long memberId) {
         if (!memberRepository.existsById(memberId)) {
-            throw new MemberNotFoundException("Member not found with id: " + memberId);
+            throw new EntityNotFoundException("Member not found with id: " + memberId);
         }
         memberRepository.deleteById(memberId);
     }
