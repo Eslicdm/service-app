@@ -3,9 +3,11 @@ package com.eslirodrigues.member.service;
 import com.eslirodrigues.member.dto.CreateMemberRequest;
 import com.eslirodrigues.member.dto.UpdateMemberRequest;
 import com.eslirodrigues.member.entity.Member;
+import com.eslirodrigues.member.exception.DuplicateEmailException;
 import jakarta.persistence.EntityNotFoundException;
 import com.eslirodrigues.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -21,15 +23,25 @@ public class MemberService {
         return memberRepository.findAllByManagerId(managerId);
     }
 
-    public Member getMemberById(Long memberId) {
-        return memberRepository.findById(memberId).orElseThrow(() ->
+    public Member getMemberById(String managerId, Long memberId) {
+        Member member = memberRepository.findById(memberId).orElseThrow(() ->
                 new EntityNotFoundException("Member not found with id: " + memberId));
+
+        if (!member.getManagerId().equals(managerId)) {
+            throw new AccessDeniedException("Not authorized to access this member");
+        }
+
+        return member;
     }
 
     public Member createMember(
             String managerId,
             CreateMemberRequest request
     ) {
+        if (memberRepository.findByEmail(request.email()).isPresent()) {
+            throw new DuplicateEmailException("Member creation failed due to a conflict");
+        }
+
         Member member = new Member();
         member.setName(request.name());
         member.setEmail(request.email());

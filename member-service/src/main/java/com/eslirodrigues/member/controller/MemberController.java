@@ -45,57 +45,35 @@ public class MemberController {
             @AuthenticationPrincipal Jwt jwt
     ) {
         String managerId = jwt.getSubject();
-
         List<Member> members = memberService.getAllMembersByManagerId(managerId);
         return ResponseEntity.ok(members);
     }
 
     @GetMapping("/{memberId}")
     @PreAuthorize("hasRole('manager') or hasRole('admin')")
-    @Operation(summary = "Get a member by ID", description = "Retrieves the details of a specific member by their ID.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Successfully retrieved member details"),
-            @ApiResponse(responseCode = "401", description = "Unauthorized - JWT is missing or invalid"),
-            @ApiResponse(responseCode = "403", description = "Forbidden - User does not have 'manager' or 'admin' role"),
-            @ApiResponse(responseCode = "404", description = "Not Found - Member with the given ID does not exist")
-    })
     public ResponseEntity<Member> getMemberById(
-            @Parameter(description = "ID of the member to retrieve", required = true) @PathVariable Long memberId
+            @AuthenticationPrincipal Jwt jwt,
+            @PathVariable Long memberId
     ) {
-        Member member = memberService.getMemberById(memberId);
+        String managerId = jwt.getSubject();
+        Member member = memberService.getMemberById(managerId, memberId);
         return ResponseEntity.ok(member);
     }
 
     @PostMapping
     @PreAuthorize("hasRole('manager') or hasRole('admin')")
-    @Operation(summary = "Create a new member", description = "Creates a new member and associates them with the authenticated manager.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "201", description = "Member created successfully"),
-            @ApiResponse(responseCode = "400", description = "Bad Request - Invalid request body"),
-            @ApiResponse(responseCode = "401", description = "Unauthorized - JWT is missing or invalid"),
-            @ApiResponse(responseCode = "403", description = "Forbidden - User does not have 'manager' or 'admin' role")
-    })
     public ResponseEntity<Member> createMember(
             @AuthenticationPrincipal Jwt jwt,
             @Valid @RequestBody CreateMemberRequest request
     ) {
         String managerId = jwt.getSubject();
-
         Member createdMember = memberService.createMember(managerId, request);
         return new ResponseEntity<>(createdMember, HttpStatus.CREATED);
     }
 
     @PutMapping("/{memberId}")
     @PreAuthorize("hasRole('manager') or hasRole('admin')")
-    @Operation(summary = "Update an existing member", description = "Updates the details of an existing member.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Member updated successfully"),
-            @ApiResponse(responseCode = "401", description = "Unauthorized - JWT is missing or invalid"),
-            @ApiResponse(responseCode = "403", description = "Forbidden - User does not have 'manager' or 'admin' role"),
-            @ApiResponse(responseCode = "404", description = "Not Found - Member with the given ID does not exist")
-    })
     public ResponseEntity<Member> updateMember(
-            @Parameter(description = "ID of the member to update", required = true)
             @PathVariable Long memberId,
             @RequestBody UpdateMemberRequest request
     ) {
@@ -105,14 +83,7 @@ public class MemberController {
 
     @DeleteMapping("/{memberId}")
     @PreAuthorize("hasRole('manager') or hasRole('admin')")
-    @Operation(summary = "Delete a member", description = "Deletes a member by their ID.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "204", description = "Member deleted successfully"),
-            @ApiResponse(responseCode = "401", description = "Unauthorized - JWT is missing or invalid"),
-            @ApiResponse(responseCode = "403", description = "Forbidden - User does not have 'manager' or 'admin' role")
-    })
     public ResponseEntity<Void> deleteMember(
-            @Parameter(description = "ID of the member to delete", required = true)
             @PathVariable Long memberId
     ) {
         memberService.deleteMember(memberId);

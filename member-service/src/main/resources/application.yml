@@ -47,6 +47,8 @@ spring:
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
       properties:
+        spring.kafka.retry.topic.enabled: true
+        spring.kafka.retry.topic.attempts: 3
         spring.json.use.type.headers: false
         spring.json.value.default.type: com.eslirodrigues.member.dto.MemberRequestEvent
         spring.json.trusted.packages: "com.eslirodrigues.member.dto"
@@ -94,7 +96,17 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info,metrics
+        include: health, info, metrics, prometheus
   endpoint:
     health:
+      show-components: always
       show-details: when-authorized
+  health:
+    redis:
+      enabled: true
+    rabbit:
+      enabled: true
+    db:
+      enabled: true
+    probes:
+      enabled: true
