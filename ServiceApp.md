@@ -103,7 +103,10 @@ This application provides a centralized platform for managing a recreational clu
 
 ## In Progress:
 
-
+* divide the packages for request and pricing
+* Handle Request submit button
+* Handle AI Button
+* Add helthy check for weaviate
 * create a k8s and docker for recommendation-service
 * adjust the CMP
 * add integration test in angular

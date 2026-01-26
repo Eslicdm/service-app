@@ -34,7 +34,7 @@ services:
       timeout: 10s
       retries: 5
       start_period: 60s
-    restart: unless-stopped
+    restart: no
 
   keycloak-db:
     image: postgres:17
@@ -54,13 +54,145 @@ services:
       retries: 5
     networks:
       - service-app-network
-    restart: unless-stopped
+    restart: no
+
+  weaviate:
+    container_name: weaviate
+    command:
+      - --host
+      - 0.0.0.0
+      - --port
+      - '8091'
+      - --scheme
+      - http
+    image: cr.weaviate.io/semitechnologies/weaviate:1.34.1
+    ports:
+      - "8091:8091"
+      - "50051:50051" # gRPC
+    volumes:
+      - weaviate_data:/var/lib/weaviate
+    environment:
+      QUERY_DEFAULTS_LIMIT: 25
+      AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED: 'true'
+      PERSISTENCE_DATA_PATH: '/var/lib/weaviate'
+      CLUSTER_HOSTNAME: 'node1'
+      DEFAULT_VECTORIZER_MODULE: 'none'
+      ENABLE_MODULES: ''
+    networks:
+      - service-app-network
+    restart: no
+
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    command: redis-server --requirepass ${REDIS_PASSWORD}
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: [ "CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - service-app-network
+    restart: no
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USERNAME}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PW}
+    ports:
+      - "5672:5672"    # AMQP port
+      - "15672:15672"  # Management UI
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    healthcheck:
+      test: [ "CMD", "rabbitmqctl", "status" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - service-app-network
+    restart: no
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.3
+    container_name: zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+      ZOOKEEPER_SERVER_ID: 1
+      KAFKA_OPTS: "-Dzookeeper.4lw.commands.whitelist=ruok"
+    healthcheck:
+      test: [ "CMD-SHELL", "echo ruok | nc localhost 2181 | grep imok" ]
+      interval: 60s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+      start_interval: 2s
+    ports:
+      - "2181:2181"
+    networks:
+      - service-app-network
+    restart: no
+
+  kafka:
+    image: confluentinc/cp-kafka:7.5.3
+    container_name: kafka
+    depends_on:
+      zookeeper:
+        condition: service_healthy
+    ports:
+      - "9092:29092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,PLAINTEXT_HOST://0.0.0.0:29092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    networks:
+      - service-app-network
+    healthcheck:
+      test: [ "CMD", "cub", "kafka-ready", "-b", "localhost:9092", "1", "1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: no
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.114.0
+    container_name: otel-collector
+    command: [ "--config=/etc/otel-collector-config.yml" ]
+    environment:
+      DD_API_KEY: ${DD_API_KEY}
+    volumes:
+      - ./otel-collector-config.yml:/etc/otel-collector-config.yml
+    ports:
+      - "4317:4317"   # OTLP gRPC receiver
+      - "4318:4318"   # OTLP HTTP receiver
+      - "8888:8888"   # Prometheus metrics endpoint
+      - "13133:13133" # Health check
+    networks:
+      - service-app-network
+    healthcheck:
+      test: [ "CMD", "/otelcol-contrib", "validate", "--config=/etc/otel-collector-config.yml" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: no
 
 # member-service port = 8081
   member-service-db:
     image: postgres:17
     container_name: member-service-db
-    restart: unless-stopped
     environment:
       POSTGRES_USER: ${MEMBER_DB_USERNAME}
       POSTGRES_PASSWORD: ${MEMBER_DB_PASSWORD}
@@ -76,13 +208,13 @@ services:
       retries: 5
     networks:
       - service-app-network
+    restart: no
 
   member-service:
     build:
       context: ../..
       dockerfile: member-service/Dockerfile
     container_name: member-service
-    restart: unless-stopped
     depends_on:
       member-service-db:
         condition: service_healthy
@@ -116,12 +248,12 @@ services:
       start_period: 60s
     networks:
       - service-app-network
+    restart: no
 
 # pricing-service port = 8082
   pricing-service-db:
     image: mongo:7.0
     container_name: pricing-service-db
-    restart: unless-stopped
     environment:
       MONGO_INITDB_ROOT_USERNAME: ${PRICING_DB_USERNAME}
       MONGO_INITDB_ROOT_PASSWORD: ${PRICING_DB_PASSWORD}
@@ -134,17 +266,17 @@ services:
       - service-app-network
     healthcheck:
       test: echo 'db.runCommand("ping").ok' | mongosh --quiet --username ${PRICING_DB_USERNAME} --password ${PRICING_DB_PASSWORD} --authenticationDatabase admin
-      interval: 10s
+      interval: 30s
       timeout: 5s
       retries: 5
       start_period: 20s
+    restart: no
 
   pricing-service:
     build:
       context: ../..
       dockerfile: pricing-service/Dockerfile
     container_name: pricing-service
-    restart: unless-stopped
     depends_on:
       pricing-service-db:
         condition: service_healthy
@@ -175,13 +307,13 @@ services:
       start_period: 60s
     networks:
       - service-app-network
+    restart: no
 
   member-request-service:
     build:
       context: ../..
       dockerfile: member-request-service/Dockerfile
     container_name: member-request-service
-    restart: unless-stopped
     depends_on:
       kafka:
         condition: service_healthy
@@ -208,13 +340,13 @@ services:
       start_period: 60s
     networks:
       - service-app-network
+    restart: no
 
   service-app-gateway:
     build:
       context: ../..
       dockerfile: service-app-gateway/Dockerfile
     container_name: service-app-gateway
-    restart: unless-stopped
     depends_on:
       keycloak:
         condition: service_healthy
@@ -247,13 +379,13 @@ services:
       start_period: 60s
     networks:
       - service-app-network
+    restart: no
 
   service-app-registry:
     build:
       context: ../..
       dockerfile: service-app-registry/Dockerfile
     container_name: service-app-registry
-    restart: unless-stopped
     depends_on:
       otel-collector:
         condition: service_healthy
@@ -275,141 +407,7 @@ services:
       start_period: 60s
     networks:
       - service-app-network
-
-
-
-  weaviate:
-    container_name: weaviate
-    command:
-      - --host
-      - 0.0.0.0
-      - --port
-      - '8091'
-      - --scheme
-      - http
-    image: cr.weaviate.io/semitechnologies/weaviate:1.34.1
-    restart: on-failure:0
-    ports:
-      - "8091:8091"
-      - "50051:50051" # gRPC
-    volumes:
-      - weaviate_data:/var/lib/weaviate
-    environment:
-      QUERY_DEFAULTS_LIMIT: 25
-      AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED: 'true'
-      PERSISTENCE_DATA_PATH: '/var/lib/weaviate'
-      CLUSTER_HOSTNAME: 'node1'
-      DEFAULT_VECTORIZER_MODULE: 'none'
-      ENABLE_MODULES: ''
-    networks:
-      - service-app-network
-
-  redis:
-    image: redis:7-alpine
-    container_name: redis
-    command: redis-server --requirepass ${REDIS_PASSWORD}
-    restart: unless-stopped
-    ports:
-      - "6379:6379"
-    volumes:
-      - redis-data:/data
-    healthcheck:
-      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    networks:
-      - service-app-network
-
-  rabbitmq:
-    image: rabbitmq:3-management
-    container_name: rabbitmq
-    restart: unless-stopped
-    environment:
-      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USERNAME}
-      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PW}
-    ports:
-      - "5672:5672"    # AMQP port
-      - "15672:15672"  # Management UI
-    volumes:
-      - rabbitmq-data:/var/lib/rabbitmq
-    healthcheck:
-      test: ["CMD", "rabbitmqctl", "status"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-    networks:
-      - service-app-network
-
-  zookeeper:
-    image: confluentinc/cp-zookeeper:7.5.3
-    container_name: zookeeper
-    environment:
-      ZOOKEEPER_CLIENT_PORT: 2181
-      ZOOKEEPER_TICK_TIME: 2000
-      ZOOKEEPER_SERVER_ID: 1
-      KAFKA_OPTS: "-Dzookeeper.4lw.commands.whitelist=ruok"
-    healthcheck:
-      test: ["CMD-SHELL", "echo ruok | nc localhost 2181 | grep imok"]
-      interval: 60s
-      timeout: 5s
-      retries: 5
-      start_period: 10s
-      start_interval: 2s
-    ports:
-      - "2181:2181"
-    networks:
-      - service-app-network
-    restart: unless-stopped
-
-  kafka:
-    image: confluentinc/cp-kafka:7.5.3
-    container_name: kafka
-    depends_on:
-      zookeeper:
-        condition: service_healthy
-    restart: unless-stopped
-    ports:
-      - "9092:29092"
-    environment:
-      KAFKA_BROKER_ID: 1
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,PLAINTEXT_HOST://0.0.0.0:29092
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:9092
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
-      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-    networks:
-      - service-app-network
-    healthcheck:
-      test: ["CMD", "cub", "kafka-ready", "-b", "localhost:9092", "1", "1"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 30s
-
-  otel-collector:
-    image: otel/opentelemetry-collector-contrib:0.114.0
-    container_name: otel-collector
-    restart: unless-stopped
-    command: ["--config=/etc/otel-collector-config.yml"]
-    environment:
-      DD_API_KEY: ${DD_API_KEY}
-    volumes:
-      - ./otel-collector-config.yml:/etc/otel-collector-config.yml
-    ports:
-      - "4317:4317"   # OTLP gRPC receiver
-      - "4318:4318"   # OTLP HTTP receiver
-      - "8888:8888"   # Prometheus metrics endpoint
-      - "13133:13133" # Health check
-    networks:
-      - service-app-network
-    healthcheck:
-      test: ["CMD", "/otelcol-contrib", "validate", "--config=/etc/otel-collector-config.yml"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 30s
+    restart: no
 
 volumes:
   keycloak-db-data:

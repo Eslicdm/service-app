@@ -1,0 +1,36 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Spring Boot-ServiceAppRegistryApplication<service-app-registry>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.eslirodrigues.ServiceAppRegistryApplication",
+            "projectName": "service-app-registry",
+            "args": "",
+            "envFile": "${workspaceFolder}/service-app-registry/.env",
+            "vmArgs": " -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=53369 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Dspring.jmx.enabled=true -Djava.rmi.server.hostname=localhost -Dspring.application.admin.enabled=true -Dspring.boot.project.name=service-app-registry"
+        },
+        {
+            "type": "java",
+            "name": "Spring Boot-ServiceAppGatewayApplication<service-app-gateway>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.eslirodrigues.service_app_gateway.ServiceAppGatewayApplication",
+            "projectName": "service-app-gateway",
+            "args": "",
+            "envFile": "${workspaceFolder}/service-app-gateway/.env",
+            "vmArgs": " -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=53385 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Dspring.jmx.enabled=true -Djava.rmi.server.hostname=localhost -Dspring.application.admin.enabled=true -Dspring.boot.project.name=service-app-gateway"
+        },
+        {
+            "type": "java",
+            "name": "Spring Boot-MemberServiceApplication<member-service>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.eslirodrigues.member.MemberServiceApplication",
+            "projectName": "member-service",
+            "args": "",
+            "envFile": "${workspaceFolder}/member-service/.env"
+        }
+    ]
+}
