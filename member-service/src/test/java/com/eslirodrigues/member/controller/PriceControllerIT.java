@@ -1,6 +1,6 @@
 package com.eslirodrigues.member.controller;
 
-import com.eslirodrigues.member.dto.PriceUpdateEventDTO;
+import com.eslirodrigues.member.pricing.dto.PriceUpdateEventDTO;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;

@@ -1,8 +1,8 @@
 package com.eslirodrigues.member.controller;
 
-import com.eslirodrigues.member.dto.CreateMemberRequest;
-import com.eslirodrigues.member.dto.UpdateMemberRequest;
-import com.eslirodrigues.member.entity.ServiceType;
+import com.eslirodrigues.member.member.dto.CreateMemberRequest;
+import com.eslirodrigues.member.member.dto.UpdateMemberRequest;
+import com.eslirodrigues.member.core.entity.ServiceType;
 import io.restassured.builder.RequestSpecBuilder;
 import io.restassured.http.ContentType;
 import io.restassured.specification.RequestSpecification;

@@ -50,7 +50,7 @@ spring:
         spring.kafka.retry.topic.enabled: true
         spring.kafka.retry.topic.attempts: 3
         spring.json.use.type.headers: false
-        spring.json.value.default.type: com.eslirodrigues.member.dto.MemberRequestEvent
+        spring.json.value.default.type: com.eslirodrigues.member.request.dto.MemberRequestEvent
         spring.json.trusted.packages: "com.eslirodrigues.member.dto"
 
 app:
