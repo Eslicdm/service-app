@@ -9,7 +9,7 @@ RUN mvn -B -f service-app-registry/pom.xml -s /usr/share/maven/ref/settings-dock
 COPY service-app-registry/src ./service-app-registry/src
 RUN mvn -B -f service-app-registry/pom.xml -s /usr/share/maven/ref/settings-docker.xml clean package -DskipTests
 
-FROM eclipse-temurin:21-jre-jammy
+FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
 
 COPY --from=build /app/service-app-registry/target/agents/opentelemetry-javaagent.jar /app/agents/opentelemetry-javaagent.jar

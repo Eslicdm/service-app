@@ -2,6 +2,7 @@ package com.eslirodrigues.member_request_service.config
 
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.http.HttpMethod
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.Customizer
@@ -23,7 +24,8 @@ class SecurityConfig {
                     ).permitAll()
                     .requestMatchers("/actuator/health/**", "/actuator/info").permitAll()
                     .requestMatchers("/actuator/**").authenticated()
-                    .requestMatchers("/api/**").permitAll()
+                    .requestMatchers(HttpMethod.POST, "/api/v1/member-requests/**").permitAll()
+                    .requestMatchers("/api/**").authenticated()
                     .anyRequest().denyAll()
             }
             .oauth2ResourceServer { oauth2 -> oauth2.jwt(Customizer.withDefaults()) }

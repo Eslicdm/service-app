@@ -103,10 +103,12 @@ This application provides a centralized platform for managing a recreational clu
 
 ## In Progress:
 
-* divide the packages for request and pricing
-* Handle Request submit button
+* resolve delete button bug (deletes the user but don't hide the dialog)
+* change the card description to get the text from pricing-service
+* make a better description of every service and the tools
 * Handle AI Button
 * Add helthy check for weaviate
 * create a k8s and docker for recommendation-service
+* try to reduce services size and memory consumption
 * adjust the CMP
 * add integration test in angular
