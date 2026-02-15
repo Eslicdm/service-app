@@ -1,7 +1,6 @@
 package com.eslirodrigues.member.core.entity;
 
 import jakarta.persistence.*;
-import lombok.*;
 import org.hibernate.proxy.HibernateProxy;
 
 import java.time.LocalDate;
@@ -9,11 +8,6 @@ import java.util.Objects;
 
 @Entity
 @Table(name = "member")
-@Getter
-@Setter
-@ToString
-@RequiredArgsConstructor
-@AllArgsConstructor
 public class Member {
 
     @Id
@@ -36,6 +30,84 @@ public class Member {
 
     @Column(name = "manager_id")
     private String managerId;
+
+    public Member() {
+    }
+
+    public Member(
+            Long id, String name, String email,
+            LocalDate birthDate, String photo,
+            ServiceType serviceType, String managerId
+    ) {
+        this.id = id;
+        this.name = name;
+        this.email = email;
+        this.birthDate = birthDate;
+        this.photo = photo;
+        this.serviceType = serviceType;
+        this.managerId = managerId;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public LocalDate getBirthDate() {
+        return birthDate;
+    }
+
+    public void setBirthDate(LocalDate birthDate) {
+        this.birthDate = birthDate;
+    }
+
+    public String getPhoto() {
+        return photo;
+    }
+
+    public void setPhoto(String photo) {
+        this.photo = photo;
+    }
+
+    public ServiceType getServiceType() {
+        return serviceType;
+    }
+
+    public void setServiceType(ServiceType serviceType) {
+        this.serviceType = serviceType;
+    }
+
+    public String getManagerId() {
+        return managerId;
+    }
+
+    public void setManagerId(String managerId) {
+        this.managerId = managerId;
+    }
+
+    @Override
+    public String toString() {
+        return "Member{" + "id=" + id + ", name='" + name + '\'' + ", email='" + email + '\'' + ", birthDate=" + birthDate + ", photo='" + photo + '\'' + ", serviceType=" + serviceType + ", managerId='" + managerId + '\'' + '}';
+    }
 
     @Override
     public final boolean equals(Object o) {

@@ -6,7 +6,6 @@ import com.eslirodrigues.member.core.entity.Member;
 import com.eslirodrigues.member.core.exception.DuplicateEmailException;
 import jakarta.persistence.EntityNotFoundException;
 import com.eslirodrigues.member.member.repository.MemberRepository;
-import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
@@ -14,10 +13,13 @@ import java.util.Optional;
 import java.util.List;
 
 @Service
-@RequiredArgsConstructor
 public class MemberService {
 
     private final MemberRepository memberRepository;
+
+    public MemberService(MemberRepository memberRepository) {
+        this.memberRepository = memberRepository;
+    }
 
     public List<Member> getAllMembersByManagerId(String managerId) {
         return memberRepository.findAllByManagerId(managerId);

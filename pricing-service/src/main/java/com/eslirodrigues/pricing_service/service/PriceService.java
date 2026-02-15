@@ -4,7 +4,6 @@ import com.eslirodrigues.pricing_service.dto.PriceUpdateDTO;
 import com.eslirodrigues.pricing_service.entity.Price;
 import com.eslirodrigues.pricing_service.entity.PriceType;
 import com.eslirodrigues.pricing_service.repository.PriceRepository;
-import lombok.RequiredArgsConstructor;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -13,7 +12,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
-@RequiredArgsConstructor
 public class PriceService {
 
     private final PriceRepository priceRepository;
@@ -24,6 +22,11 @@ public class PriceService {
 
     @Value("${app.rabbitmq.routingkey.price-updated}")
     private String priceUpdatedRoutingKey;
+
+    public PriceService(PriceRepository priceRepository, RabbitTemplate rabbitTemplate) {
+        this.priceRepository = priceRepository;
+        this.rabbitTemplate = rabbitTemplate;
+    }
 
     public List<Price> getAllPrices() {
         return priceRepository.findAll();

@@ -10,7 +10,6 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import com.eslirodrigues.member.member.service.MemberService;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -22,12 +21,15 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/members")
-@RequiredArgsConstructor
 @Tag(name = "Member Management", description = "APIs for creating, retrieving, updating, and deleting members.")
 @SecurityRequirement(name = "bearerAuth")
 public class MemberController {
 
     private final MemberService memberService;
+
+    public MemberController(MemberService memberService) {
+        this.memberService = memberService;
+    }
 
     @GetMapping
     @PreAuthorize("hasRole('manager') or hasRole('admin')")

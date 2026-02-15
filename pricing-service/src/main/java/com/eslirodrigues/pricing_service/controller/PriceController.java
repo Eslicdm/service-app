@@ -5,7 +5,6 @@ import com.eslirodrigues.pricing_service.entity.Price;
 import com.eslirodrigues.pricing_service.entity.PriceType;
 import jakarta.validation.Valid;
 import com.eslirodrigues.pricing_service.service.PriceService;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -14,10 +13,13 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/prices")
-@RequiredArgsConstructor
 public class PriceController {
 
     private final PriceService priceService;
+
+    public PriceController(PriceService priceService) {
+        this.priceService = priceService;
+    }
 
     @GetMapping
     public ResponseEntity<List<Price>> getAllPrices() {

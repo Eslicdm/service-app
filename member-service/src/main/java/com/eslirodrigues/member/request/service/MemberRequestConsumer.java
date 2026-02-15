@@ -2,16 +2,17 @@ package com.eslirodrigues.member.request.service;
 
 import com.eslirodrigues.member.request.dto.MemberRequestEvent;
 import com.eslirodrigues.member.member.repository.MemberRepository;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 
-@Slf4j
 @Service
 public class MemberRequestConsumer {
 
+    private static final Logger log = LoggerFactory.getLogger(MemberRequestConsumer.class);
     private static final String MEMBER_REQUESTS_HASH_KEY = "member-requests";
 
     private final MemberRepository memberRepository;
