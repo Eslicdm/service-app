@@ -14,10 +14,11 @@ public class MemberRequestService {
 
     private static final String MEMBER_REQUESTS_HASH_KEY = "member-requests";
 
-    @Qualifier("genericRedisTemplate")
     private final RedisTemplate<String, Object> redisTemplate;
 
-    public MemberRequestService(RedisTemplate<String, Object> redisTemplate) {
+    public MemberRequestService(
+            @Qualifier("genericRedisTemplate") RedisTemplate<String, Object> redisTemplate
+    ) {
         this.redisTemplate = redisTemplate;
     }
 

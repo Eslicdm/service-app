@@ -24,7 +24,7 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: http://localhost:8080/realms/service-app-realm
+          issuer-uri: http://keycloak:8080/realms/service-app-realm
 
 app:
   rabbitmq:
@@ -36,6 +36,7 @@ app:
 springdoc:
   api-docs:
     path: /v3/api-docs
+    enabled: false
   swagger-ui:
     path: /swagger-ui.html
 

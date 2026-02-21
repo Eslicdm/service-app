@@ -48,7 +48,9 @@ public record PriceUpdateEventDTO(
         public static PriceType fromValue(String value) {
             return Optional.ofNullable(valueMap.get(value.toLowerCase()))
                     .or(() -> Optional.ofNullable(nameMap.get(value.toUpperCase())))
-                    .orElseThrow(() -> new IllegalArgumentException("Unknown enum value: '" + value + "'"));
+                    .orElseThrow(() -> new IllegalArgumentException(
+                            "Unknown enum value: '" + value + "'"
+                    ));
         }
     }
 }

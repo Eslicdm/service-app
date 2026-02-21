@@ -103,6 +103,7 @@ This application provides a centralized platform for managing a recreational clu
 
 ## In Progress:
 
+* adjust the auth in pricing-service
 * resolve delete button bug (deletes the user but don't hide the dialog)
 * change the card description to get the text from pricing-service
 * make a better description of every service and the tools

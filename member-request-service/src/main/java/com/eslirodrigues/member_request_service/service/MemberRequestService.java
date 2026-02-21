@@ -18,7 +18,10 @@ public class MemberRequestService {
     private final RedisTemplate<String, String> redisTemplate;
     private final MemberRequestProducer memberRequestProducer;
 
-    public MemberRequestService(RedisTemplate<String, String> redisTemplate, MemberRequestProducer memberRequestProducer) {
+    public MemberRequestService(
+            RedisTemplate<String, String> redisTemplate,
+            MemberRequestProducer memberRequestProducer
+    ) {
         this.redisTemplate = redisTemplate;
         this.memberRequestProducer = memberRequestProducer;
     }
@@ -30,10 +33,16 @@ public class MemberRequestService {
                 .setIfAbsent(cacheKey, "processed", SUBMISSION_CACHE_TTL);
 
         if (Boolean.TRUE.equals(wasSet)) {
-            log.info("New submission for email: {}. Sending to Kafka.", memberRequestDTO.email());
+            log.info(
+                    "New submission for email: {}. Sending to Kafka.",
+                    memberRequestDTO.email()
+            );
             memberRequestProducer.sendMemberRequest(memberRequestDTO);
         } else {
-            log.warn("Duplicate submission detected within 5 minutes for email: {}. Ignoring.", memberRequestDTO.email());
+            log.warn(
+                    "Duplicate submission detected within 5 minutes for email: {}. Ignoring.",
+                    memberRequestDTO.email()
+            );
         }
     }
 }
