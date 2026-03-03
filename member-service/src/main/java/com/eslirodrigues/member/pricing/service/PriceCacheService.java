@@ -2,6 +2,7 @@ package com.eslirodrigues.member.pricing.service;
 
 import com.eslirodrigues.member.pricing.client.PricingServiceClient;
 import com.eslirodrigues.member.pricing.dto.PriceUpdateEventDTO;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -16,15 +17,18 @@ public class PriceCacheService {
 
     private final RedisTemplate<String, Object> redisTemplate;
     private final PricingServiceClient pricingServiceClient;
+    private final ObjectMapper objectMapper;
     private static final String PRICE_UPDATE_KEY_PREFIX = "price-update:";
 
     public PriceCacheService(
             @Qualifier("genericRedisTemplate")
             RedisTemplate<String, Object> redisTemplate,
-            PricingServiceClient pricingServiceClient
+            PricingServiceClient pricingServiceClient,
+            ObjectMapper objectMapper
     ) {
         this.redisTemplate = redisTemplate;
         this.pricingServiceClient = pricingServiceClient;
+        this.objectMapper = objectMapper;
     }
 
     private String generateCacheKey(PriceUpdateEventDTO.PriceType priceType) {
@@ -48,7 +52,7 @@ public class PriceCacheService {
             log.info("Returning all prices from cache.");
             return cachedPrices.stream()
                     .filter(Objects::nonNull)
-                    .map(PriceUpdateEventDTO.class::cast)
+                    .map(obj -> objectMapper.convertValue(obj, PriceUpdateEventDTO.class))
                     .toList();
         }
 

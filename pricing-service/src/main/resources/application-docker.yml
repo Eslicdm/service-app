@@ -1,11 +1,4 @@
 spring:
-  data:
-    mongodb:
-      host: pricing-service-db
-      username: ${PRICING_DB_USERNAME}
-      password: ${PRICING_DB_PASSWORD}
-      database: ${PRICING_DB_NAME}
-
   rabbitmq:
     host: rabbitmq
     username: ${RABBITMQ_USERNAME}
@@ -16,6 +9,9 @@ spring:
       resourceserver:
         jwt:
           issuer-uri: http://keycloak:8080/realms/service-app-realm
+
+  mongodb:
+    uri: mongodb://${PRICING_DB_USERNAME}:${PRICING_DB_PASSWORD}@pricing-service-db:27017/${PRICING_DB_NAME}?authSource=admin
 
 eureka:
   client:

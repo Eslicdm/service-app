@@ -37,7 +37,7 @@ services:
     restart: no
 
   keycloak-db:
-    image: postgres:17
+    image: postgres:16
     container_name: keycloak-db
     environment:
       POSTGRES_USER: ${KC_DB_USERNAME}
@@ -191,7 +191,7 @@ services:
 
 # member-service port = 8081
   member-service-db:
-    image: postgres:17
+    image: postgres:16
     container_name: member-service-db
     environment:
       POSTGRES_USER: ${MEMBER_DB_USERNAME}
@@ -226,18 +226,15 @@ services:
         condition: service_healthy
     environment:
       - SPRING_PROFILES_ACTIVE=docker
-      - OTEL_SERVICE_NAME=member-service
-      - OTEL_EXPORTER_OTLP_ENDPOINT=${OTEL_EXPORTER_OTLP_ENDPOINT}
-      - OTEL_METRICS_EXPORTER=${OTEL_METRICS_EXPORTER}
-      - OTEL_LOGS_EXPORTER=${OTEL_LOGS_EXPORTER}
-      - OTEL_TRACES_EXPORTER=${OTEL_TRACES_EXPORTER}
       - MEMBER_DB_USERNAME=${MEMBER_DB_USERNAME}
       - MEMBER_DB_PASSWORD=${MEMBER_DB_PASSWORD}
       - MEMBER_DB_NAME=${MEMBER_DB_NAME}
       - REDIS_PASSWORD=${REDIS_PASSWORD}
       - RABBITMQ_USERNAME=${RABBITMQ_USERNAME}
       - RABBITMQ_PW=${RABBITMQ_PW}
-      - JAVA_TOOL_OPTIONS=-javaagent:/app/agents/opentelemetry-javaagent.jar
+      - MANAGEMENT_OTLP_METRICS_EXPORT_URL=http://otel-collector:4318/v1/metrics
+      - MANAGEMENT_OPENTELEMETRY_TRACING_EXPORT_OTLP_ENDPOINT=http://otel-collector:4318/v1/traces
+      - MANAGEMENT_OPENTELEMETRY_LOGGING_EXPORT_OTLP_ENDPOINT=http://otel-collector:4318/v1/logs
     ports:
       - "8081:8081"
     healthcheck:
@@ -286,17 +283,15 @@ services:
         condition: service_healthy
     environment:
       - SPRING_PROFILES_ACTIVE=docker
-      - OTEL_SERVICE_NAME=pricing-service
-      - OTEL_EXPORTER_OTLP_ENDPOINT=${OTEL_EXPORTER_OTLP_ENDPOINT}
-      - OTEL_METRICS_EXPORTER=${OTEL_METRICS_EXPORTER}
-      - OTEL_LOGS_EXPORTER=${OTEL_LOGS_EXPORTER}
-      - OTEL_TRACES_EXPORTER=${OTEL_TRACES_EXPORTER}
       - PRICING_DB_USERNAME=${PRICING_DB_USERNAME}
       - PRICING_DB_PASSWORD=${PRICING_DB_PASSWORD}
       - PRICING_DB_NAME=${PRICING_DB_NAME}
       - RABBITMQ_USERNAME=${RABBITMQ_USERNAME}
       - RABBITMQ_PW=${RABBITMQ_PW}
-      - JAVA_TOOL_OPTIONS=-javaagent:/app/agents/opentelemetry-javaagent.jar
+      - SPRING_DATA_MONGODB_URI=mongodb://${PRICING_DB_USERNAME}:${PRICING_DB_PASSWORD}@pricing-service-db:27017/${PRICING_DB_NAME}?authSource=admin
+      - MANAGEMENT_OTLP_METRICS_EXPORT_URL=http://otel-collector:4318/v1/metrics
+      - MANAGEMENT_OPENTELEMETRY_TRACING_EXPORT_OTLP_ENDPOINT=http://otel-collector:4318/v1/traces
+      - MANAGEMENT_OPENTELEMETRY_LOGGING_EXPORT_OTLP_ENDPOINT=http://otel-collector:4318/v1/logs
     ports:
       - "8082:8082"
     healthcheck:
@@ -323,13 +318,10 @@ services:
         condition: service_healthy
     environment:
       - SPRING_PROFILES_ACTIVE=docker
-      - OTEL_SERVICE_NAME=member-request-service
-      - OTEL_EXPORTER_OTLP_ENDPOINT=${OTEL_EXPORTER_OTLP_ENDPOINT}
-      - OTEL_METRICS_EXPORTER=${OTEL_METRICS_EXPORTER}
-      - OTEL_LOGS_EXPORTER=${OTEL_LOGS_EXPORTER}
-      - OTEL_TRACES_EXPORTER=${OTEL_TRACES_EXPORTER}
       - REDIS_PASSWORD=${REDIS_PASSWORD}
-      - JAVA_TOOL_OPTIONS=-javaagent:/app/agents/opentelemetry-javaagent.jar
+      - MANAGEMENT_OTLP_METRICS_EXPORT_URL=http://otel-collector:4318/v1/metrics
+      - MANAGEMENT_OPENTELEMETRY_TRACING_EXPORT_OTLP_ENDPOINT=http://otel-collector:4318/v1/traces
+      - MANAGEMENT_OPENTELEMETRY_LOGGING_EXPORT_OTLP_ENDPOINT=http://otel-collector:4318/v1/logs
     ports:
       - "8084:8084"
     healthcheck:
@@ -360,15 +352,12 @@ services:
         condition: service_healthy
     environment:
       - SPRING_PROFILES_ACTIVE=docker
-      - OTEL_SERVICE_NAME=service-app-gateway
-      - OTEL_EXPORTER_OTLP_ENDPOINT=${OTEL_EXPORTER_OTLP_ENDPOINT}
-      - OTEL_METRICS_EXPORTER=${OTEL_METRICS_EXPORTER}
-      - OTEL_LOGS_EXPORTER=${OTEL_LOGS_EXPORTER}
-      - OTEL_TRACES_EXPORTER=${OTEL_TRACES_EXPORTER}
       - REDIS_PASSWORD=${REDIS_PASSWORD}
       - RABBITMQ_USERNAME=${RABBITMQ_USERNAME}
       - RABBITMQ_PW=${RABBITMQ_PW}
-      - JAVA_TOOL_OPTIONS=-javaagent:/app/agents/opentelemetry-javaagent.jar
+      - MANAGEMENT_OTLP_METRICS_EXPORT_URL=http://otel-collector:4318/v1/metrics
+      - MANAGEMENT_OPENTELEMETRY_TRACING_EXPORT_OTLP_ENDPOINT=http://otel-collector:4318/v1/traces
+      - MANAGEMENT_OPENTELEMETRY_LOGGING_EXPORT_OTLP_ENDPOINT=http://otel-collector:4318/v1/logs
     ports:
       - "8090:8090"
     healthcheck:
@@ -391,12 +380,9 @@ services:
         condition: service_healthy
     environment:
       - SPRING_PROFILES_ACTIVE=docker
-      - OTEL_SERVICE_NAME=service-app-registry
-      - OTEL_EXPORTER_OTLP_ENDPOINT=${OTEL_EXPORTER_OTLP_ENDPOINT}
-      - OTEL_METRICS_EXPORTER=${OTEL_METRICS_EXPORTER}
-      - OTEL_LOGS_EXPORTER=${OTEL_LOGS_EXPORTER}
-      - OTEL_TRACES_EXPORTER=${OTEL_TRACES_EXPORTER}
-      - JAVA_TOOL_OPTIONS=-javaagent:/app/agents/opentelemetry-javaagent.jar
+      - MANAGEMENT_OTLP_METRICS_EXPORT_URL=http://otel-collector:4318/v1/metrics
+      - MANAGEMENT_OPENTELEMETRY_TRACING_EXPORT_OTLP_ENDPOINT=http://otel-collector:4318/v1/traces
+      - MANAGEMENT_OPENTELEMETRY_LOGGING_EXPORT_OTLP_ENDPOINT=http://otel-collector:4318/v1/logs
     ports:
       - "8761:8761"
     healthcheck:

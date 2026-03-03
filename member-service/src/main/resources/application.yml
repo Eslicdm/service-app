@@ -20,6 +20,7 @@ spring:
 
   flyway:
     enabled: true
+    baseline-on-migrate: true
 
   data:
     redis:
@@ -89,20 +90,23 @@ eureka:
       health-check-url: http://localhost:8081/actuator/health
 
 management:
+  otlp:
+    metrics:
+      export:
+        url: http://localhost:4318/v1/metrics
+  opentelemetry:
+    tracing:
+      export:
+        otlp:
+          endpoint: http://localhost:4318/v1/traces
+    logging:
+      export:
+        otlp:
+          endpoint: http://localhost:4318/v1/logs
   endpoints:
     web:
       exposure:
-        include: health, info, metrics, prometheus
+        include: health,info,metrics
   endpoint:
     health:
-      show-components: always
       show-details: when-authorized
-  health:
-    redis:
-      enabled: true
-    rabbit:
-      enabled: true
-    db:
-      enabled: true
-    probes:
-      enabled: true
