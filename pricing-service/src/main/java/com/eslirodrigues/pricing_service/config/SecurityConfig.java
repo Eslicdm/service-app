@@ -2,6 +2,7 @@ package com.eslirodrigues.pricing_service.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -32,6 +33,7 @@ public class SecurityConfig {
                                 .requestMatchers("/actuator/health/**",
                                         "/actuator/info").permitAll()
                                 .requestMatchers("/actuator/**").authenticated()
+                                .requestMatchers(HttpMethod.GET, "/api/v1/prices").permitAll()
                                 .requestMatchers("/api/**").authenticated()
                                 .anyRequest().denyAll()
                 )
